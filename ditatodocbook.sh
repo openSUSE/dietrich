@@ -37,11 +37,12 @@ cat <<EOF > "$outputdir/DC-$(basename $1 | sed -r 's/.ditamap$//')"
 MAIN=MAIN.$(basename $1 | sed -r 's/.ditamap$//').xml
 EOF
 
-cd "$basedir"
 
 for sourcefile in $sourcefiles; do
-  saxon9 -xsl:"$mydir/dita2docbook_template.xsl" -s:"$sourcefile" -o:"$outputxmldir/$(echo $sourcefile | sed -r 's_/_-_g')"
+  saxon9 -xsl:"$mydir/dita2docbook_template.xsl" -s:"$basedir/$sourcefile" -o:"$outputxmldir/$(echo $sourcefile | sed -r 's_/_-_g')"
   echo "<xi:include href=\"$(echo $sourcefile | sed -r 's_/_-_g')\" xmlns:xi=\"http://www.w3.org/2001/XInclude\"/>" >> $mainfile
 done
 
 echo "</book>" >> $mainfile
+
+echo -e "\nOutput:\n  $basedir/converteddocbook"
