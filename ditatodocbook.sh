@@ -5,14 +5,43 @@
 mydir="$(dirname $0)"
 inputmap="$1"
 basedir="$(dirname $inputmap)"
-outputdir="$basedir/converteddocbook"
+inputbasename="$(basename $1 | sed -r 's/.ditamap$//')"
+outputdir="$basedir/converted/$inputbasename"
 outputxmldir="$outputdir/xml"
+outputpngdir="$outputdir/images/src/png"
 
-sourcefiles="$(grep -oP 'href=\"[^\"]+\"' $1 | sed -r -e 's/^href=\"//' -e 's/\"$//')"
+sourcefiles="$(sed -r -e 's!-->!⁜!g' -e 's/<!--[^⁜]*⁜//g' $1 | grep -oP 'href=\"[^\"]+\"' | sed -r -e 's/^href=\"//' -e 's/\"$//' | tr '\r' ' ')"
 
+tmpdir=$(mktemp -d -p '/tmp' -t 'db-convert-XXXXXXX')
+
+allids="$(xsltproc $mydir/find-ids.xsl $sourcefiles | sort)"
+uniqueids=$(echo -e "$allids" | uniq)
+nonuniqueids=$(comm -2 -3 <(echo -e "$allids") <(echo -e "$uniqueids") 2> /dev/null | uniq | tr '\n' '|' | sed 's/|$//')
+
+for sourcefile in $sourcefiles; do
+  mkdir -p "$tmpdir/$(dirname $sourcefile)"
+  cp "$sourcefile" "$tmpdir/$(dirname $sourcefile)"
+  hasnuids=$(grep -noP " id=\"($nonuniqueids)\"" "$tmpdir/$sourcefile")
+  countnuids=$(echo "$hasnuids" | wc -l)
+  if [[ ! "$hasnuids" ]]; then
+   countnuids=0
+  fi
+  echo "$sourcefile ($countnuids):"
+  echo -e "$hasnuids"
+  if [[ "$countnuids" -gt 0 ]]; then
+    for line in $(echo -e "$hasnuids" | sed -r 's/^([0-9]+).*/\1/'); do
+      # FIXME: Will do dumb things if there are multiple IDs on a line but
+      # just one is supposed to be replaced. Fingers crossed & hope for the best.
+      paul="$(( ( RANDOM % 9999999 ) + 1 ))"
+      sed -i -r "${line}s/\bid=\"[^\"]+\"/id=\"id${paul}\"/g" "$tmpdir/$sourcefile"
+    done
+  fi
+done
+echo "t: $tmpdir"
 #echo "Source files belonging to $1:"
 #echo -e "$sourcefiles"
 mkdir -p "$outputxmldir" 2> /dev/null
+mkdir -p "$outputpngdir" 2> /dev/null
 
 # This does not work.
 # saxon9 -xsl:"$mydir/map2docbook.xsl" -s:"$1" -o:"$outputxmldir/MAIN.$(basename $1 | sed -r 's/.ditamap$//').xml"
@@ -33,17 +62,26 @@ EOF
 
 
 # Easier this than with an echo, it seems...
-cat <<EOF > "$outputdir/DC-$(basename $1 | sed -r 's/.ditamap$//')"
+dcfile="$outputdir/DC-$inputbasename"
+cat <<EOF > "$dcfile"
 MAIN=MAIN.$(basename $1 | sed -r 's/.ditamap$//').xml
 EOF
 
 
 for sourcefile in $sourcefiles; do
   finalfile="$outputxmldir/$(echo $sourcefile | sed -r 's_/_-_g')"
-  saxon9 -xsl:"$mydir/dita2docbook_template.xsl" -s:"$basedir/$sourcefile" -o:"$finalfile"
+  saxon9 -xsl:"$mydir/dita2docbook_template.xsl" -s:"$tmpdir/$sourcefile" -o:"$finalfile"
   echo "<xi:include href=\"$(echo $sourcefile | sed -r 's_/_-_g')\" xmlns:xi=\"http://www.w3.org/2001/XInclude\"/>" >> $mainfile
 done
 
 echo "</article>" >> $mainfile
 
-echo -e "\nOutput:\n  $basedir/converteddocbook"
+linkends=$(grep -oP "linkend=\"[^\"]+\"" $outputxmldir/*.xml | sed -r -e 's/(^[^:]+:linkend=\"|\"$)//g' | uniq | tr '\n' ' ' | sed -e 's/^./ &/g' -e 's/.$/& /g' )
+for sourcefile in $sourcefiles; do
+  actualfile="$outputxmldir/$(echo $sourcefile | sed -r 's_/_-_g')"
+  xsltproc --stringparam "linkends" "$linkends" "$mydir/clean-ids.xsl" "$actualfile" > "$actualfile.0"
+  mv $actualfile.0 $actualfile
+done
+
+echo "t: $tmpdir"
+echo -e "\nOutput:\n  $outputdir"
