@@ -79,9 +79,18 @@ echo "</article>" >> $mainfile
 linkends=$(grep -oP "linkend=\"[^\"]+\"" $outputxmldir/*.xml | sed -r -e 's/(^[^:]+:linkend=\"|\"$)//g' | uniq | tr '\n' ' ' | sed -e 's/^./ &/g' -e 's/.$/& /g' )
 for sourcefile in $sourcefiles; do
   actualfile="$outputxmldir/$(echo $sourcefile | sed -r 's_/_-_g')"
-  xsltproc --stringparam "linkends" "$linkends" "$mydir/clean-ids.xsl" "$actualfile" > "$actualfile.0"
-  mv $actualfile.0 $actualfile
+  xsltproc --stringparam "linkends" "$linkends" "$mydir/clean-ids.xsl" "$actualfile" > "$actualfile.0" 2>> "$tmpdir/entitiesneeded"
+  sed -r 's/⁂/\&/g' $actualfile.0 > $actualfile
 done
+
+entitiesneeded="$(cat $tmpdir/entitiesneeded | sed 's/replaced-with-entity://' | sort | uniq)"
+{
+  for entity in $entitiesneeded; do
+    echo "<!ENTITY $(echo $entity | sed -r -e 's/[^#]+#//' -e 's_[^A-Za-z0-9]__g') 'THIS ENTITY NEEDS TO BE FIXED'>"
+  done
+} > "$outputxmldir/entities.ent"
+
+
 
 echo "t: $tmpdir"
 echo -e "\nOutput:\n  $outputdir"
