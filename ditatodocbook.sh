@@ -24,10 +24,10 @@ cat <<EOF > $mainfile
 <?xml-stylesheet
 href="urn:x-daps:xslt:profiling:docbook45-profile.xsl" type="text/xml"
 title="Profiling step" ?>
-<!DOCTYPE set PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.docbook.org/xml/4.5/docbookx.dtd"
+<!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.docbook.org/xml/4.5/docbookx.dtd"
 [
 ]>
-<book lang="en">
+<article lang="en">
  $(grep -oP -m1 '<title>[^<]+</title>' "$1")
 EOF
 
@@ -39,10 +39,11 @@ EOF
 
 
 for sourcefile in $sourcefiles; do
-  saxon9 -xsl:"$mydir/dita2docbook_template.xsl" -s:"$basedir/$sourcefile" -o:"$outputxmldir/$(echo $sourcefile | sed -r 's_/_-_g')"
+  finalfile="$outputxmldir/$(echo $sourcefile | sed -r 's_/_-_g')"
+  saxon9 -xsl:"$mydir/dita2docbook_template.xsl" -s:"$basedir/$sourcefile" -o:"$finalfile"
   echo "<xi:include href=\"$(echo $sourcefile | sed -r 's_/_-_g')\" xmlns:xi=\"http://www.w3.org/2001/XInclude\"/>" >> $mainfile
 done
 
-echo "</book>" >> $mainfile
+echo "</article>" >> $mainfile
 
 echo -e "\nOutput:\n  $basedir/converteddocbook"
