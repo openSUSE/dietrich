@@ -79,7 +79,7 @@ EOF
 for sourcefile in $sourcefiles; do
   actualfile="$(echo $sourcefile | sed -r 's_/_-_g')"
   actualpath="$outputxmldir/$actualfile"
-  saxon9 -xsl:"$mydir/dita2docbook_template.xsl" -s:"$tmpdir/$sourcefile" -o:"$actualpath"
+  saxon9 -xsl:"$mydir/dita2docbook_template.xsl" -s:"$tmpdir/$sourcefile" -o:"$actualpath" 2>> "$tmpdir/saxon-log"
   echo "<xi:include href=\"$actualfile\" xmlns:xi=\"http://www.w3.org/2001/XInclude\"/>" >> $mainfile
 done
 
