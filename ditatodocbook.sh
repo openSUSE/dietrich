@@ -5,6 +5,8 @@
 mydir="$(dirname $0)"
 inputmap="$1"
 basedir="$(dirname $inputmap)"
+# FIXME: This is totally hard-coded, so does not work correctly on non-Fujitsu-CMM stuff
+baseimagedir="$basedir/images"
 inputbasename="$(basename $1 | sed -r 's/.ditamap$//')"
 outputdir="$basedir/converted/$inputbasename"
 outputxmldir="$outputdir/xml"
@@ -79,18 +81,23 @@ echo "</article>" >> $mainfile
 linkends=$(grep -oP "linkend=\"[^\"]+\"" $outputxmldir/*.xml | sed -r -e 's/(^[^:]+:linkend=\"|\"$)//g' | uniq | tr '\n' ' ' | sed -e 's/^./ &/g' -e 's/.$/& /g' )
 for sourcefile in $sourcefiles; do
   actualfile="$outputxmldir/$(echo $sourcefile | sed -r 's_/_-_g')"
-  xsltproc --stringparam "linkends" "$linkends" "$mydir/clean-ids.xsl" "$actualfile" > "$actualfile.0" 2>> "$tmpdir/entitiesneeded"
-  sed -r 's/⁂/\&/g' $actualfile.0 > $actualfile
+  xsltproc --stringparam "linkends" "$linkends" "$mydir/clean-ids.xsl" "$actualfile" > "$actualfile.0" 2>> "$tmpdir/neededstuff"
+  mv $actualfile.0 $actualfile
 done
 
-entitiesneeded="$(cat $tmpdir/entitiesneeded | sed 's/replaced-with-entity://' | sort | uniq)"
+# FIXME: Neither of these are safe for names with spaces in them, becasue they
+# don't iterate over lines, at least not per se :/
+entitiesneeded="$(sed -n -r 's/^need-entity:// p' $tmpdir/neededstuff | sort | uniq)"
 {
   for entity in $entitiesneeded; do
-    echo "<!ENTITY $(echo $entity | sed -r -e 's/[^#]+#//' -e 's_[^A-Za-z0-9]__g') 'THIS ENTITY NEEDS TO BE FIXED'>"
+    echo "<!ENTITY $(echo $entity | sed -r 's/^([^,]+).*$/\1/') \"FIXME, I am an entity. Original content at: $(echo $entity | sed -r 's/^[^,]+,(.*)$/\1/')\">"
   done
 } > "$outputxmldir/entities.ent"
 
-
+imagesneeded="$(cat $tmpdir/neededstuff | sed -n 's/need-image:// p' | sort | uniq)"
+for image in $imagesneeded; do
+  cp "$baseimagedir/$(basename $(echo $image | sed -r 's/^[^,]+,(.*)$/\1/'))" "$outputpngdir/$(echo $image | sed -r 's/^([^,]+).*$/\1/')"
+done
 
 echo "t: $tmpdir"
 echo -e "\nOutput:\n  $outputdir"

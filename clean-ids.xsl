@@ -30,9 +30,36 @@
   <!-- Does not really fit here, but ... oh well: Create an entity definition
   from those weird converted conrefs. -->
   <xsl:template match="inlinemediaobject[@remap='ph']">
-    <xsl:message>replaced-with-entity:<xsl:value-of select="imageobject/imagedata/@fileref"/></xsl:message>
-    <xsl:text>⁂</xsl:text>
-    <xsl:value-of select="translate(substring-after(imageobject/imagedata/@fileref, '#'), '/._', '')"/>
+    <xsl:variable name="entity" select="translate(substring-after(imageobject/imagedata/@fileref, '#'), '/\ ,;@&amp;', '-')"/>
+    <xsl:message>need-entity:<xsl:value-of select="$entity"/>,<xsl:value-of select="imageobject/imagedata/@fileref"/></xsl:message>
+    <xsl:text disable-output-escaping="yes">&amp;</xsl:text>
+    <xsl:value-of select="$entity"/>
     <xsl:text>;</xsl:text>
+  </xsl:template>
+
+  <!-- Any filerefs that are left now should always be valid because the
+  idiotic conref conversions are already excluded at this point. -->
+  <xsl:template match="imagedata/@fileref">
+    <xsl:variable name="file-candidate">
+      <xsl:call-template name="cut-off-dirs">
+        <xsl:with-param name="input" select="."/>
+      </xsl:call-template>
+    </xsl:variable>
+    <xsl:variable name="file" select="translate($file-candidate, '/\ ,;@&amp;', '-')"/>
+    <xsl:message>need-image:<xsl:value-of select="$file"/>,<xsl:value-of select="."/></xsl:message>
+    <xsl:attribute name="fileref"><xsl:value-of select="$file"/></xsl:attribute>
+  </xsl:template>
+
+  <xsl:template name="cut-off-dirs">
+    <xsl:param name="input" select="''"/>
+    <xsl:param name="output" select="substring-after($input,'../')"/>
+    <xsl:choose>
+      <xsl:when test="starts-with($output, '../')">
+        <xsl:call-template name="cut-off-dirs">
+          <xsl:with-param name="input" select="$output"/>
+        </xsl:call-template>
+      </xsl:when>
+      <xsl:otherwise><xsl:value-of select="$output"/></xsl:otherwise>
+    </xsl:choose>
   </xsl:template>
 </xsl:stylesheet>
