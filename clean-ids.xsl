@@ -32,8 +32,8 @@
 
   <!-- Does not really fit here, but ... oh well: Create an entity definition
   from those weird converted conrefs. -->
-  <xsl:template match="inlinemediaobject[not(@remap='fig')]">
-    <xsl:variable name="entity" select="translate(substring-after(imageobject/imagedata/@fileref, '#'), '/\ ,;@&amp;', '-')"/>
+  <xsl:template match="inlinemediaobject[contains(imageobject/imagedata/@fileref, '.xml#')]|mediaobject[contains(imageobject/imagedata/@fileref, '.xml#')]" priority="10">
+    <xsl:variable name="entity" select="translate(substring-after(imageobject/imagedata/@fileref, '.xml#'), '/\ ,;@&amp;', '-')"/>
     <xsl:message>need-entity:<xsl:value-of select="$entity"/>,<xsl:value-of select="imageobject/imagedata/@fileref"/></xsl:message>
     <xsl:text disable-output-escaping="yes">&amp;</xsl:text>
     <xsl:value-of select="$entity"/>
