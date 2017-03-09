@@ -103,7 +103,7 @@ done
 
 ## Create an entity file & copy necessary images
 
-# FIXME: Neither of these are safe for names with spaces in them, becasue they
+# FIXME: Neither of these are safe for names with spaces in them, because they
 # don't iterate over lines, at least not per se :/
 entitiesneeded="$(sed -n -r 's/^need-entity:// p' $tmpdir/neededstuff | sort | uniq)"
 {
