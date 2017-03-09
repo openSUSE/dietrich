@@ -19,6 +19,9 @@
     </xsl:copy>
   </xsl:template>
 
+  <!-- Let's not kill remap yet, it can be helpful. -->
+  <!-- <xsl:template match="@remap"/> -->
+
   <!-- We get a list of linkends, all IDs that are not part of that list are
   removed here. -->
   <xsl:template match="@id">
@@ -29,7 +32,7 @@
 
   <!-- Does not really fit here, but ... oh well: Create an entity definition
   from those weird converted conrefs. -->
-  <xsl:template match="inlinemediaobject[@remap='ph']">
+  <xsl:template match="inlinemediaobject[not(@remap='fig')]">
     <xsl:variable name="entity" select="translate(substring-after(imageobject/imagedata/@fileref, '#'), '/\ ,;@&amp;', '-')"/>
     <xsl:message>need-entity:<xsl:value-of select="$entity"/>,<xsl:value-of select="imageobject/imagedata/@fileref"/></xsl:message>
     <xsl:text disable-output-escaping="yes">&amp;</xsl:text>
@@ -62,4 +65,13 @@
       <xsl:otherwise><xsl:value-of select="$output"/></xsl:otherwise>
     </xsl:choose>
   </xsl:template>
+
+  <xsl:template match="literal/emphasis">
+    <replaceable><xsl:apply-templates/></replaceable>
+  </xsl:template>
+
+  <xsl:template match="inlinemediaobject[not(ancestor::para or ancestor::title or ancestor::remark or ancestor::entry)]">
+    <mediaobject><xsl:apply-templates/></mediaobject>
+  </xsl:template>
+
 </xsl:stylesheet>
