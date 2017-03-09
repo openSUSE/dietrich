@@ -94,7 +94,7 @@ echo "MAIN=$(basename $mainfile)" > "$dcfile"
 ## filerefs in imageobjects and replace ex-conref'd contents with entities.
 
 # FIXME: Do we still want to clean up all the ID names? It should not hurt
-linkends=$(grep -oP "linkend=\"[^\"]+\"" $outputxmldir/*.xml | sed -r -e 's/(^[^:]+:linkend=\"|\"$)//g' | uniq | tr '\n' ' ' | sed -e 's/^./ &/g' -e 's/.$/& /g' )
+linkends=$(grep -oP "\blinkend=\"[^\"]+\"" $outputxmldir/*.xml | sed -r -e 's/(^[^:]+:linkend=\"|\"$)//g' | uniq | tr '\n' ' ' | sed -e 's/^./ &/g' -e 's/.$/& /g' )
 for sourcefile in $sourcefiles; do
   actualfile="$outputxmldir/$(echo $sourcefile | sed -r 's_/_-_g')"
   xsltproc --stringparam "linkends" "$linkends" "$mydir/clean-ids.xsl" "$actualfile" > "$actualfile.0" 2>> "$tmpdir/neededstuff"
