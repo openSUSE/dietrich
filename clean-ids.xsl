@@ -19,6 +19,9 @@
     </xsl:copy>
   </xsl:template>
 
+  <!-- Do something against role="" and such stuff. -->
+  <xsl:template match="@*[text() = '']"/>
+
   <!-- Let's not kill remap yet, it can be helpful. -->
   <!-- <xsl:template match="@remap"/> -->
 
