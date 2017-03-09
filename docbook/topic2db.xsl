@@ -1258,7 +1258,7 @@ DATA-TYPE PHRASES: date time currency char num bin oct dec hex ???
 
 <xsl:template match="*[contains(@class,' topic/no-topic-nesting ')]"/>
 
-<xsl:template match="*[@conref]">
+<xsl:template match="*[@conref]" priority="10">
   <!-- a well-known Docbook hack -->
   <inlinemediaobject role="{@parse}">
     <xsl:call-template name="setStandardAttr">
