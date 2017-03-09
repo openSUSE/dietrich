@@ -19,6 +19,6 @@ Packages to install on openSUSE:
 
 1. Pick a `*.ditamap` file and run the script on it:
    `./ditatodocbook.sh [DITAMAP-FILE]`
-1. Find the output in the subdirectory "converteddocbook" of the directory
-   of your `*.ditamap` file
-1. You can now run `daps validate` on the generated content:
+2. Find the output in the subdirectory `converted/[NAME-OF-DITAMAP]` of the
+   directory in which your `*.ditamap` file is located
+3. You can now run `daps validate` on the generated content.
