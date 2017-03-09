@@ -2,23 +2,36 @@
 # Usage:
 #   dotatodocbook.sh [DITAMAP]
 
+## This tool
 mydir="$(dirname $0)"
+
+## Input
 inputmap="$1"
 basedir="$(dirname $inputmap)"
-# FIXME: This is totally hard-coded, so does not work correctly on non-Fujitsu-CMM stuff
+# FIXME: The image directory is totally hard-coded, so does not work
+# correctly on non-Fujitsu-CMM stuff
 baseimagedir="$basedir/images"
 inputbasename="$(basename $1 | sed -r 's/.ditamap$//')"
+
+## Output
 outputdir="$basedir/converted/$inputbasename"
 outputxmldir="$outputdir/xml"
 outputpngdir="$outputdir/images/src/png"
 
+## Find the source files in the ditamap
 sourcefiles="$(sed -r -e 's!-->!⁜!g' -e 's/<!--[^⁜]*⁜//g' $1 | grep -oP 'href=\"[^\"]+\"' | sed -r -e 's/^href=\"//' -e 's/\"$//' | tr '\r' ' ')"
 
-tmpdir=$(mktemp -d -p '/tmp' -t 'db-convert-XXXXXXX')
+## Modify the original DITA files to get rid of duplicate IDs.
+
+# Guiding principle: Don't touch those with XML tools, for fear the DITA
+# source might explode in our hands... Not sure that is a rational guiding
+# principle. Would need checking.
 
 allids="$(xsltproc $mydir/find-ids.xsl $sourcefiles | sort)"
 uniqueids=$(echo -e "$allids" | uniq)
 nonuniqueids=$(comm -2 -3 <(echo -e "$allids") <(echo -e "$uniqueids") 2> /dev/null | uniq | tr '\n' '|' | sed 's/|$//')
+
+tmpdir=$(mktemp -d -p '/tmp' -t 'db-convert-XXXXXXX')
 
 for sourcefile in $sourcefiles; do
   mkdir -p "$tmpdir/$(dirname $sourcefile)"
@@ -28,8 +41,6 @@ for sourcefile in $sourcefiles; do
   if [[ ! "$hasnuids" ]]; then
    countnuids=0
   fi
-  echo "$sourcefile ($countnuids):"
-  echo -e "$hasnuids"
   if [[ "$countnuids" -gt 0 ]]; then
     for line in $(echo -e "$hasnuids" | sed -r 's/^([0-9]+).*/\1/'); do
       # FIXME: Will do dumb things if there are multiple IDs on a line but
@@ -39,16 +50,18 @@ for sourcefile in $sourcefiles; do
     done
   fi
 done
-echo "t: $tmpdir"
-#echo "Source files belonging to $1:"
-#echo -e "$sourcefiles"
+
+## Create output dirs
 mkdir -p "$outputxmldir" 2> /dev/null
 mkdir -p "$outputpngdir" 2> /dev/null
 
-# This does not work.
+## From the ditamap, create a MAIN file.
+
+# FIXME: This does not work.
 # saxon9 -xsl:"$mydir/map2docbook.xsl" -s:"$1" -o:"$outputxmldir/MAIN.$(basename $1 | sed -r 's/.ditamap$//').xml"
 
-# Let's do this the most simplistic & idiotic way possible...
+# Therefore, let's do this the most simplistic & idiotic way possible...
+# FIXME: Unfortunately, this also destroys the structure somewhat.
 mainfile="$outputxmldir/MAIN.$(basename $1 | sed -r 's/.ditamap$//').xml"
 cat <<EOF > $mainfile
 <?xml version="1.0" encoding="utf-8"?>
@@ -62,22 +75,25 @@ title="Profiling step" ?>
  $(grep -oP -m1 '<title>[^<]+</title>' "$1")
 EOF
 
-
-# Easier this than with an echo, it seems...
-dcfile="$outputdir/DC-$inputbasename"
-cat <<EOF > "$dcfile"
-MAIN=MAIN.$(basename $1 | sed -r 's/.ditamap$//').xml
-EOF
-
-
+## Actual conversion
 for sourcefile in $sourcefiles; do
-  finalfile="$outputxmldir/$(echo $sourcefile | sed -r 's_/_-_g')"
-  saxon9 -xsl:"$mydir/dita2docbook_template.xsl" -s:"$tmpdir/$sourcefile" -o:"$finalfile"
-  echo "<xi:include href=\"$(echo $sourcefile | sed -r 's_/_-_g')\" xmlns:xi=\"http://www.w3.org/2001/XInclude\"/>" >> $mainfile
+  actualfile="$(echo $sourcefile | sed -r 's_/_-_g')"
+  actualpath="$outputxmldir/$actualfile"
+  saxon9 -xsl:"$mydir/dita2docbook_template.xsl" -s:"$tmpdir/$sourcefile" -o:"$actualpath"
+  echo "<xi:include href=\"$actualfile\" xmlns:xi=\"http://www.w3.org/2001/XInclude\"/>" >> $mainfile
 done
 
 echo "</article>" >> $mainfile
 
+## Create a very basic DC file
+
+dcfile="$outputdir/DC-$inputbasename"
+echo "MAIN=$(basename $mainfile)" > "$dcfile"
+
+## Collect linkends, clean up all the IDs that are not used, also clean up
+## filerefs in imageobjects and replace ex-conref'd contents with entities.
+
+# FIXME: Do we still want to clean up all the ID names? It should not hurt
 linkends=$(grep -oP "linkend=\"[^\"]+\"" $outputxmldir/*.xml | sed -r -e 's/(^[^:]+:linkend=\"|\"$)//g' | uniq | tr '\n' ' ' | sed -e 's/^./ &/g' -e 's/.$/& /g' )
 for sourcefile in $sourcefiles; do
   actualfile="$outputxmldir/$(echo $sourcefile | sed -r 's_/_-_g')"
@@ -85,11 +101,14 @@ for sourcefile in $sourcefiles; do
   mv $actualfile.0 $actualfile
 done
 
+## Create an entity file & copy necessary images
+
 # FIXME: Neither of these are safe for names with spaces in them, becasue they
 # don't iterate over lines, at least not per se :/
 entitiesneeded="$(sed -n -r 's/^need-entity:// p' $tmpdir/neededstuff | sort | uniq)"
 {
   for entity in $entitiesneeded; do
+    # FIXME: Currently, there is just dummy content in the generated entities.
     echo "<!ENTITY $(echo $entity | sed -r 's/^([^,]+).*$/\1/') \"FIXME, I am an entity. Original content at: $(echo $entity | sed -r 's/^[^,]+,(.*)$/\1/')\">"
   done
 } > "$outputxmldir/entities.ent"
@@ -99,5 +118,6 @@ for image in $imagesneeded; do
   cp "$baseimagedir/$(basename $(echo $image | sed -r 's/^[^,]+,(.*)$/\1/'))" "$outputpngdir/$(echo $image | sed -r 's/^([^,]+).*$/\1/')"
 done
 
-echo "t: $tmpdir"
-echo -e "\nOutput:\n  $outputdir"
+echo ""
+echo "Temporary directory: $tmpdir"
+echo "Output directory:    $outputdir"
