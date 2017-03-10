@@ -57,9 +57,6 @@ mkdir -p "$outputpngdir" 2> /dev/null
 
 ## From the ditamap, create a MAIN file.
 
-# FIXME: This does not work.
-# saxon9 -xsl:"$mydir/map2docbook.xsl" -s:"$1" -o:"$outputxmldir/MAIN.$(basename $1 | sed -r 's/.ditamap$//').xml"
-
 # Therefore, let's do this the most simplistic & idiotic way possible...
 # FIXME: Unfortunately, this also destroys the structure somewhat.
 mainfile="$outputxmldir/MAIN.$(basename $1 | sed -r 's/.ditamap$//').xml"
@@ -79,7 +76,7 @@ EOF
 for sourcefile in $sourcefiles; do
   actualfile="$(echo $sourcefile | sed -r 's_/_-_g')"
   actualpath="$outputxmldir/$actualfile"
-  saxon9 -xsl:"$mydir/dita2docbook_template.xsl" -s:"$tmpdir/$sourcefile" -o:"$actualpath" 2>> "$tmpdir/saxon-log"
+  saxon9 -xsl:"$mydir/dita2docbook_template.xsl" -s:"$tmpdir/$sourcefile" -o:"$actualpath"
   echo "<xi:include href=\"$actualfile\" xmlns:xi=\"http://www.w3.org/2001/XInclude\"/>" >> $mainfile
 done
 
