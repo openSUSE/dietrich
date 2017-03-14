@@ -9,7 +9,7 @@
     <xsl:text>book</xsl:text>
     <xsl:text disable-output-escaping="yes"> PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd"</xsl:text>
     <xsl:text disable-output-escaping="yes"> [ &lt;!ENTITY % entities SYSTEM "entities.ent"&gt; %entities; ]&gt;</xsl:text>
-    <xsl:apply-templates select="@*|node()[not(self::node()[normalize-space()][1][self::processing-instruction()])]"/>
+    <xsl:apply-templates select="@*|node()"/>
   </xsl:template>
 
   <xsl:template match="@*|node()" priority="-1">
@@ -79,6 +79,7 @@
        <xsl:with-param name="input" select="@href"/>
       </xsl:call-template>
     </xsl:variable>
+    <xsl:message>source-file:<xsl:value-of select="@href"/></xsl:message>
     <xi:include href="{$file}" xmlns:xi="http://www.w3.org/2001/XInclude"/>
     <xsl:call-template name="changeroot">
       <xsl:with-param name="file" select="$file"/>
@@ -98,6 +99,7 @@
        <xsl:with-param name="input" select="ancestor::*[1]/@href"/>
       </xsl:call-template>
     </xsl:variable>
+    <xsl:message>source-file:<xsl:value-of select="@href"/></xsl:message>
     <xsl:message>append-to:<xsl:value-of select="$parentfile"/>,generate-include:<xsl:value-of select="$file"/></xsl:message>
     <xsl:call-template name="changeroot">
       <xsl:with-param name="file" select="$file"/>
