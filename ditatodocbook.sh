@@ -3,11 +3,11 @@
 #   dotatodocbook.sh [DITAMAP]
 
 ## This tool
-mydir="$(dirname $0)"
+mydir="$(realpath $(dirname $0))"
 
 ## Input
 inputmap="$1"
-basedir="$(dirname $inputmap)"
+basedir="$(realpath $(dirname $inputmap))"
 # FIXME: The image directory is totally hard-coded, so does not work
 # correctly on non-Fujitsu-CMM stuff
 baseimagedir="$basedir/images"
@@ -18,24 +18,38 @@ outputdir="$basedir/converted/$inputbasename"
 outputxmldir="$outputdir/xml"
 outputpngdir="$outputdir/images/src/png"
 
+## Create temporary/output dirs
+tmpdir=$(mktemp -d -p '/tmp' -t 'db-convert-XXXXXXX')
+mkdir -p "$outputxmldir" 2> /dev/null
+mkdir -p "$outputpngdir" 2> /dev/null
+
+## From the ditamap, create a MAIN file.
+
+mainfile="$outputxmldir/MAIN.$(basename $1 | sed -r 's/.ditamap$//').xml"
+# --novalid is necessary for the Fujitsu stuff since we seem to lack the right DTD
+xsltproc --novalid "$mydir/map-to-MAIN.xsl" "$inputmap" > "$mainfile" 2> "$tmpdir/includes"
+
 ## Find the source files in the ditamap
-sourcefiles="$(sed -r -e 's!-->!⁜!g' -e 's/<!--[^⁜]*⁜//g' $1 | grep -oP 'href=\"[^\"]+\"' | sed -r -e 's/^href=\"//' -e 's/\"$//' | tr '\r' ' ')"
+sourcefiles="$(sed -n -r 's/^source-file:// p' $tmpdir/includes)"
+
+# Include conrefs
+
+for sourcefile in $sourcefiles; do
+  mkdir -p "$tmpdir/$(dirname $sourcefile)"
+  xsltproc \
+    --stringparam "basepath" "$basedir"\
+    --stringparam "relativefilepath" "$(dirname $sourcefile)"\
+    "$mydir/resolve-conrefs.xsl" \
+    "$basedir/$sourcefile" > "$tmpdir/$sourcefile"
+done
 
 ## Modify the original DITA files to get rid of duplicate IDs.
-
-# Guiding principle: Don't touch those with XML tools, for fear the DITA
-# source might explode in our hands... Not sure that is a rational guiding
-# principle. Would need checking.
 
 allids="$(xsltproc $mydir/find-ids.xsl $sourcefiles | sort)"
 uniqueids=$(echo -e "$allids" | uniq)
 nonuniqueids=$(comm -2 -3 <(echo -e "$allids") <(echo -e "$uniqueids") 2> /dev/null | uniq | tr '\n' '|' | sed 's/|$//')
 
-tmpdir=$(mktemp -d -p '/tmp' -t 'db-convert-XXXXXXX')
-
 for sourcefile in $sourcefiles; do
-  mkdir -p "$tmpdir/$(dirname $sourcefile)"
-  cp "$sourcefile" "$tmpdir/$(dirname $sourcefile)"
   hasnuids=$(grep -noP " id=\"($nonuniqueids)\"" "$tmpdir/$sourcefile")
   countnuids=$(echo "$hasnuids" | wc -l)
   if [[ ! "$hasnuids" ]]; then
@@ -51,15 +65,6 @@ for sourcefile in $sourcefiles; do
   fi
 done
 
-## Create output dirs
-mkdir -p "$outputxmldir" 2> /dev/null
-mkdir -p "$outputpngdir" 2> /dev/null
-
-## From the ditamap, create a MAIN file.
-
-mainfile="$outputxmldir/MAIN.$(basename $1 | sed -r 's/.ditamap$//').xml"
-# --novalid is necessary for the Fujitsu stuff since we seem to lack the right DTD
-xsltproc --novalid "$mydir/map-to-MAIN.xsl" "$inputmap" > "$mainfile" 2> "$tmpdir/includes"
 
 ## Actual conversion
 for sourcefile in $sourcefiles; do
