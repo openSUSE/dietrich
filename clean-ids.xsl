@@ -2,12 +2,25 @@
   <xsl:output method="xml"/>
 
   <xsl:param name="linkends" select="''"/>
+  <xsl:param name="root" select="''"/>
+  <xsl:param name="includes" select="''"/>
+
+  <xsl:variable name="actual-root">
+    <xsl:choose>
+      <xsl:when test="string-length($root) &gt; 0">
+        <xsl:value-of select="$root"/>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:value-of select="local-name(/*[1])"/>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:variable>
 
   <xsl:template match="/">
     <!-- Move the xml-stylesheet PI before the DOCTYPE declaration. -->
     <xsl:apply-templates select="node()[normalize-space()][1][self::processing-instruction()]"/>
     <xsl:text disable-output-escaping="yes">&lt;!DOCTYPE </xsl:text>
-    <xsl:value-of select="local-name(/*[1])"/>
+    <xsl:value-of select="$actual-root"/>
     <xsl:text disable-output-escaping="yes"> PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd"</xsl:text>
     <xsl:text disable-output-escaping="yes"> [ &lt;!ENTITY % entities SYSTEM "entities.ent"&gt; %entities; ]&gt;</xsl:text>
     <xsl:apply-templates select="@*|node()[not(self::node()[normalize-space()][1][self::processing-instruction()])]"/>
@@ -19,8 +32,30 @@
     </xsl:copy>
   </xsl:template>
 
+  <xsl:template match="/*">
+    <xsl:element name="{$actual-root}">
+      <xsl:apply-templates select="@*|node()"/>
+      <xsl:if test="string-length($includes) &gt; 0">
+        <xsl:call-template name="generate-imports">
+          <xsl:with-param name="input" select="$includes"/>
+        </xsl:call-template>
+      </xsl:if>
+    </xsl:element>
+  </xsl:template>
+
+  <xsl:template name="generate-imports">
+    <xsl:param name="input" select="','"/>
+    <xsl:variable name="file" select="substring-before($input, ',')"/>
+    <xi:include href="{$file}" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xsl:if test="string-length(substring-after($input, ',')) &gt; 0">
+      <xsl:call-template name="generate-imports">
+        <xsl:with-param name="input" select="substring-after($input, ',')"/>
+      </xsl:call-template>
+    </xsl:if>
+  </xsl:template>
+
   <!-- Do something against role="" and such stuff. -->
-  <xsl:template match="@*[text() = '']"/>
+<!--  <xsl:template match="@*[. = '']"/>-->
 
   <!-- Let's not kill remap yet, it can be helpful. -->
   <!-- <xsl:template match="@remap"/> -->

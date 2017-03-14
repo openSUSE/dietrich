@@ -57,30 +57,16 @@ mkdir -p "$outputpngdir" 2> /dev/null
 
 ## From the ditamap, create a MAIN file.
 
-# Therefore, let's do this the most simplistic & idiotic way possible...
-# FIXME: Unfortunately, this also destroys the structure somewhat.
 mainfile="$outputxmldir/MAIN.$(basename $1 | sed -r 's/.ditamap$//').xml"
-cat <<EOF > $mainfile
-<?xml version="1.0" encoding="utf-8"?>
-<?xml-stylesheet
-href="urn:x-daps:xslt:profiling:docbook45-profile.xsl" type="text/xml"
-title="Profiling step" ?>
-<!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.docbook.org/xml/4.5/docbookx.dtd"
-[
-]>
-<article lang="en">
- $(grep -oP -m1 '<title>[^<]+</title>' "$1")
-EOF
+# --novalid is necessary for the Fujitsu stuff since we seem to lack the right DTD
+xsltproc --novalid "$mydir/map-to-MAIN.xsl" "$inputmap" > "$mainfile" 2> "$tmpdir/includes"
 
 ## Actual conversion
 for sourcefile in $sourcefiles; do
-  actualfile="$(echo $sourcefile | sed -r 's_/_-_g')"
+  actualfile="$(echo $sourcefile | sed -r 's_[/, ]_-_g')"
   actualpath="$outputxmldir/$actualfile"
   saxon9 -xsl:"$mydir/dita2docbook_template.xsl" -s:"$tmpdir/$sourcefile" -o:"$actualpath"
-  echo "<xi:include href=\"$actualfile\" xmlns:xi=\"http://www.w3.org/2001/XInclude\"/>" >> $mainfile
 done
-
-echo "</article>" >> $mainfile
 
 ## Create a very basic DC file
 
@@ -93,8 +79,16 @@ echo "MAIN=$(basename $mainfile)" > "$dcfile"
 # FIXME: Do we still want to clean up all the ID names? It should not hurt
 linkends=$(grep -oP "\blinkend=\"[^\"]+\"" $outputxmldir/*.xml | sed -r -e 's/(^[^:]+:linkend=\"|\"$)//g' | uniq | tr '\n' ' ' | sed -e 's/^./ &/g' -e 's/.$/& /g' )
 for sourcefile in $sourcefiles; do
-  actualfile="$outputxmldir/$(echo $sourcefile | sed -r 's_/_-_g')"
-  xsltproc --stringparam "linkends" "$linkends" "$mydir/clean-ids.xsl" "$actualfile" > "$actualfile.0" 2>> "$tmpdir/neededstuff"
+  filename="$(echo $sourcefile | sed -r 's_[/, ]_-_g')"
+  actualfile="$outputxmldir/$filename"
+  root=$(grep -m1 "^file:$filename,root:" $tmpdir/includes | sed -r 's_^.+,root:(.+)$_\1_')
+  includes=$(grep -P "^append-to:$filename,generate-include:" $tmpdir/includes | sed -r 's_^.+,generate-include:(.+)$_\1_' | tr '\n' ',')
+  xsltproc \
+    --stringparam "linkends" "$linkends" \
+    --stringparam "root" "$root" \
+    --stringparam "includes" "$includes" \
+    "$mydir/clean-ids.xsl" \
+    "$actualfile" > "$actualfile.0" 2>> "$tmpdir/neededstuff"
   mv $actualfile.0 $actualfile
 done
 
@@ -114,6 +108,8 @@ imagesneeded="$(cat $tmpdir/neededstuff | sed -n 's/need-image:// p' | sort | un
 for image in $imagesneeded; do
   cp "$baseimagedir/$(basename $(echo $image | sed -r 's/^[^,]+,(.*)$/\1/'))" "$outputpngdir/$(echo $image | sed -r 's/^([^,]+).*$/\1/')"
 done
+
+daps -d "$dcfile" xmlformat
 
 echo ""
 echo "Temporary directory: $tmpdir"
