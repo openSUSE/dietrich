@@ -112,4 +112,8 @@
     <mediaobject><xsl:apply-templates/></mediaobject>
   </xsl:template>
 
+  <xsl:template match="xref[@linkend='']">
+    <citetitle>FIXME: broken external xref</citetitle>
+  </xsl:template>
+
 </xsl:stylesheet>
