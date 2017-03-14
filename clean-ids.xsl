@@ -23,7 +23,7 @@
     <xsl:value-of select="$actual-root"/>
     <xsl:text disable-output-escaping="yes"> PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd"</xsl:text>
     <xsl:text disable-output-escaping="yes"> [ &lt;!ENTITY % entities SYSTEM "entities.ent"&gt; %entities; ]&gt;</xsl:text>
-    <xsl:apply-templates select="@*|node()[not(self::node()[normalize-space()][1][self::processing-instruction()])]"/>
+    <xsl:apply-templates select="@*|node()"/>
   </xsl:template>
 
   <xsl:template match="@*|node()" priority="-1">
@@ -54,11 +54,7 @@
     </xsl:if>
   </xsl:template>
 
-  <!-- Do something against role="" and such stuff. -->
-<!--  <xsl:template match="@*[. = '']"/>-->
-
-  <!-- Let's not kill remap yet, it can be helpful. -->
-  <!-- <xsl:template match="@remap"/> -->
+  <xsl:template match="@remap|@*[. = '']"/>
 
   <!-- We get a list of linkends, all IDs that are not part of that list are
   removed here. -->
@@ -106,6 +102,10 @@
 
   <xsl:template match="literal/emphasis">
     <replaceable><xsl:apply-templates/></replaceable>
+  </xsl:template>
+
+  <xsl:template match="literal/phrase">
+    <xsl:apply-templates/>
   </xsl:template>
 
   <xsl:template match="inlinemediaobject[not(ancestor::para or ancestor::title or ancestor::remark or ancestor::entry)]">
