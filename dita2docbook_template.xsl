@@ -32,6 +32,10 @@
   <xsl:apply-templates/>
 </xsl:template>
 
+<xsl:template match="comment()">
+  <xsl:comment><xsl:copy/></xsl:comment>
+</xsl:template>
+
 <xsl:template match="dita">
   <section>
     <title/>
