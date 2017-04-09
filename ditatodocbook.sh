@@ -82,9 +82,9 @@ done
 
 ## Actual conversion
 for sourcefile in $sourcefiles; do
-  actualfile="$(echo $sourcefile | sed -r 's_[/, ]_-_g')"
-  actualpath="$outputxmldir/$actualfile"
-  saxon9 -xsl:"$mydir/dita2docbook_template.xsl" -s:"$tmpdir/$sourcefile" -o:"$actualpath"
+  outputfile="$(echo $sourcefile | sed -r 's_[/, ]_-_g')"
+  outputpath="$outputxmldir/$outputfile"
+  saxon9 -xsl:"$mydir/dita2docbook_template.xsl" -s:"$tmpdir/$sourcefile" -o:"$outputpath"
 done
 
 ## Create a very basic DC file
@@ -98,18 +98,19 @@ echo "MAIN=$(basename $mainfile)" > "$dcfile"
 # FIXME: Do we still want to clean up all the ID names? It should not hurt
 linkends=$(grep -oP "\blinkend=\"[^\"]+\"" $outputxmldir/*.xml | sed -r -e 's/(^[^:]+:linkend=\"|\"$)//g' | uniq | tr '\n' ' ' | sed -e 's/^./ &/g' -e 's/.$/& /g' )
 for sourcefile in $sourcefiles; do
-  filename="$(echo $sourcefile | sed -r 's_[/, ]_-_g')"
-  actualfile="$outputxmldir/$filename"
-  root=$(grep -m1 "^file:$filename,root:" $tmpdir/includes | sed -r 's_^.+,root:(.+)$_\1_')
-  includes=$(grep -P "^append-to:$filename,generate-include:" $tmpdir/includes | sed -r 's_^.+,generate-include:(.+)$_\1_' | tr '\n' ',')
+  # FIXME: We are generating these variables twice. Seems suboptimal.
+  outputfile="$(echo $sourcefile | sed -r 's_[/, ]_-_g')"
+  outputpath="$outputxmldir/$outputfile"
+  root=$(grep -m1 "^file:$outputfile,root:" $tmpdir/includes | sed -r 's_^.+,root:(.+)$_\1_')
+  includes=$(grep -P "^append-to:$outputfile,generate-include:" $tmpdir/includes | sed -r 's_^.+,generate-include:(.+)$_\1_' | tr '\n' ',')
   xsltproc \
     --stringparam "linkends" "$linkends" \
     --stringparam "root" "$root" \
     --stringparam "includes" "$includes" \
     --stringparam "relativefilepath" "$(dirname $sourcefile)" \
     "$mydir/clean-ids.xsl" \
-    "$actualfile" > "$actualfile.0" 2>> "$tmpdir/neededstuff"
-  mv $actualfile.0 $actualfile
+    "$outputpath" > "$outputpath.0" 2>> "$tmpdir/neededstuff"
+  mv $outputpath.0 $outputpath
 done
 
 ## Create an entity file & copy necessary images
