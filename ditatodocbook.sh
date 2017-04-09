@@ -1,6 +1,21 @@
 #! /bin/bash
 # Usage:
-#   dotatodocbook.sh [DITAMAP]
+#   ditatodocbook.sh [DITAMAP]
+#
+# Configuration:
+#   * Add a file called conversion.conf to the directory of your DITAMAP
+#   * The configuration file will be sourced by the script
+#   * Recognized options:
+#     + outputdir: The directory to place output in. Can but does not have to
+#         exist. Existing files will be overwritten mercilessly.
+#         (default: [DITAMAP's_DIR]/converted/[DITAMAP's_NAME])
+#     + styleroot: Style root to write into the DC file. (default: none)
+#     + cleanup: Delete temporary directory after conversion. (default: 1)
+
+if [[ $1 == '--help' ]] || [[ $1 == '-h' ]] || [[ ! $1 ]]; then
+  sed -rn '/#!/{n; p; :loop n; p; /^[ \t]*$/q; b loop}' $0 | sed -r 's/^# ?//'
+  exit
+fi
 
 ## This tool
 mydir="$(realpath $(dirname $0))"
@@ -12,8 +27,16 @@ basedir="$(realpath $(dirname $inputmap))"
 # correctly on non-Fujitsu-CMM stuff
 inputbasename="$(basename $1 | sed -r 's/.ditamap$//')"
 
-## Output
+## Configurable options
 outputdir="$basedir/converted/$inputbasename"
+styleroot=""
+cleanup=1
+
+## Source a config file, if any
+# This is an evil security issue but let's ignore that for the moment.
+test -s "$basedir/conversion.conf" && . "$basedir/conversion.conf" || true
+
+## Output (fix)
 outputxmldir="$outputdir/xml"
 outputimagedir="$outputdir/images/src"
 
@@ -89,7 +112,12 @@ done
 ## Create a very basic DC file
 
 dcfile="$outputdir/DC-$inputbasename"
-echo "MAIN=$(basename $mainfile)" > "$dcfile"
+{
+  echo "MAIN=$(basename $mainfile)"
+  if [[ $styleroot != '' ]]; then
+    echo "STYLEROOT=$styleroot"
+  fi
+} > "$dcfile"
 
 ## Collect linkends, clean up all the IDs that are not used, also clean up
 ## filerefs in imageobjects and replace ex-conref'd contents with entities.
@@ -137,5 +165,9 @@ daps -d "$dcfile" xmlformat > /dev/null
 daps -d "$dcfile" optipng > /dev/null
 
 echo ""
-echo "Temporary directory: $tmpdir"
+if [[ $cleanup = 1 ]]; then
+  rm -r $tmpdir
+else
+  echo "Temporary directory: $tmpdir"
+fi
 echo "Output directory:    $outputdir"
