@@ -1,10 +1,11 @@
 ## Known to work for
 
 * fujitsu-cmm: overview.ditamap
+* fujitsu-cmm: osoverview.ditamap (only sorta, but:yay!)
 
 ## Known issues
 
-* Entity file needs to be manually updated. Not an issue with overview.ditamap, but definitely an issue with all others.
+* Entity file does not contain anything (instead of containing conreffed content). This lowers editability of the converted content somewhat.
     * Crazy-town solution:
         1. Use Saxon to find out where an ID comes from (i.e. line and char numbers of containing elements begin and end). (Hope that Saxon does not change the line numbers by just reading the file in.)
         2. Add markers before & after conreffed elements using e.g. sed, to avoid modifying stuff with XML tools. Markers should already contain the expected entity name.
@@ -14,24 +15,20 @@
     * Caveats:
         * Need to be able to expand the list of source files, since original content may come from files that are not part of the source
     * Other possible solution:
-        * Do a preparation step before converting that just uses the document() function liberally and is able to include such sections
-        * Not ideal for re-use, especially not having product name/product number entities might hurt
-        * Side effects might be somewhat mitigated by including comments of where contents appear elsewhere
-* Structure of document is not converted correctly: Main file shows a flat list of sections. -> Needs to be done via proper XSLT, map2docbook.xsl seems not to be willing
-    * Idea:
-        1. For the top-level includes, generate XIncludes
-        2. Make sure that the top-level elements in each of the files matches the intended top-level.
-        3. Generate file that lists for each file which XIncludes need to be appended to its content.
-        4. Convert to DocBook.
-        5. Add XIncludes to just before root element is closed.
 * attempted intra-xrefs fail -- because the files are not collected in a
   `<set/>`, e.g.: tenantuser/about/c-about.xml : xref to
   "../../shared/intro/c-intro.xml", comes out with empty linkend -> hard to
   fix properly correctly, especially if we are thinking about shipping only
   part of the docs. Maybe I can generate a citetitle?
-* having an absolute path function in XSLT would really help for both getting
-  the image paths right and for getting conref paths/entities right, would
-  need to feed the stylesheet the pcur=$(dirname path/to/current.file), then
-  I could concat($pcur, '/', (@href|@fileref)[1]) = path/to/../../other/path.
-  With substring-before('../') and string-after('../'), I should then be able
-  to always eliminate pairs of dir/ + ../
+* duplicate IDs still persist somehow (lots of errors caught in the
+  neededstuff file)
+* @CONREF:start/@CONREF:end search behavior is/should be wrong for cases
+  involving the second+ conref of multiple conrefs nested into another; i.e.:
+  conref:1/[conref/2, conref/3, conref/4] -> conref/3 and conref/4 would use
+  wrong prefix paths because the preceding @CONREF: comment is a @CONREF:end
+  which means relativefilepath will be used as the prefix (??)
+* suse-xsl issue or fop 1.1 issue? sidebar/itemizedlist/listitem comes out with
+  negative margins between (some) listitems, sxsl2.0.6.3, fop1.1, osoperator,
+  sec 1.2, "Monitoring" sidebar (PDF)
+* suse-xsl issue: sidebar titles are completely disfigured: whole text is
+  generated for the number
