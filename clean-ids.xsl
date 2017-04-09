@@ -1,9 +1,12 @@
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
   <xsl:output method="xml"/>
 
+  <xsl:include href="paths.xsl"/>
+
   <xsl:param name="linkends" select="''"/>
   <xsl:param name="root" select="''"/>
   <xsl:param name="includes" select="''"/>
+  <xsl:param name="relativefilepath" select="''"/>
 
   <xsl:variable name="actual-root">
     <xsl:choose>
@@ -77,27 +80,35 @@
   <!-- Any filerefs that are left now should always be valid because the
   idiotic conref conversions are already excluded at this point. -->
   <xsl:template match="imagedata/@fileref">
-    <xsl:variable name="file-candidate">
-      <xsl:call-template name="cut-off-dirs">
-        <xsl:with-param name="input" select="."/>
+    <xsl:variable name="prefixpath-candidate">
+      <!-- Sooo, let's try to check whether there is either an
+      preceding::-@CONREF:start comment. Comments stand outside the normal
+      XML structure, so I can only use the preceding::/following:: axes. I
+      should still be fine however, as long as I make sure to always add an
+      @CONREF:end comment. -->
+      <xsl:if test="preceding::comment()[starts-with(., '@CONREF:')][1][starts-with(., '@CONREF:start ')]">
+        <xsl:value-of select="substring-after(preceding::comment()[starts-with(., '@CONREF:start ')][1], '@CONREF:start ')"/>
+      </xsl:if>
+    </xsl:variable>
+    <xsl:variable name="prefixpath">
+      <xsl:choose>
+        <xsl:when test="contains($prefixpath-candidate,'#')">
+          <xsl:value-of select="substring-before($prefixpath-candidate,'#')"/>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:value-of select="$prefixpath-candidate"/>
+        </xsl:otherwise>
+      </xsl:choose>
+    </xsl:variable>
+    <xsl:variable name="relpath">
+      <xsl:call-template name="relpath">
+        <xsl:with-param name="input" select="normalize-space(.)"/>
+        <xsl:with-param name="prefix" select="$prefixpath"/>
       </xsl:call-template>
     </xsl:variable>
-    <xsl:variable name="file" select="translate($file-candidate, '/\ ,;@&amp;', '-')"/>
-    <xsl:message>need-image:<xsl:value-of select="$file"/>,<xsl:value-of select="."/></xsl:message>
+    <xsl:variable name="file" select="translate($relpath, '/\ ,;@&amp;', '-')"/>
+    <xsl:message>need-image:<xsl:value-of select="$file"/>,<xsl:value-of select="$relpath"/></xsl:message>
     <xsl:attribute name="fileref"><xsl:value-of select="$file"/></xsl:attribute>
-  </xsl:template>
-
-  <xsl:template name="cut-off-dirs">
-    <xsl:param name="input" select="''"/>
-    <xsl:param name="output" select="substring-after($input,'../')"/>
-    <xsl:choose>
-      <xsl:when test="starts-with($output, '../')">
-        <xsl:call-template name="cut-off-dirs">
-          <xsl:with-param name="input" select="$output"/>
-        </xsl:call-template>
-      </xsl:when>
-      <xsl:otherwise><xsl:value-of select="$output"/></xsl:otherwise>
-    </xsl:choose>
   </xsl:template>
 
   <xsl:template match="literal/emphasis">

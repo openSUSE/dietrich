@@ -10,7 +10,6 @@ inputmap="$1"
 basedir="$(realpath $(dirname $inputmap))"
 # FIXME: The image directory is totally hard-coded, so does not work
 # correctly on non-Fujitsu-CMM stuff
-baseimagedir="$basedir/images"
 inputbasename="$(basename $1 | sed -r 's/.ditamap$//')"
 
 ## Output
@@ -107,6 +106,7 @@ for sourcefile in $sourcefiles; do
     --stringparam "linkends" "$linkends" \
     --stringparam "root" "$root" \
     --stringparam "includes" "$includes" \
+    --stringparam "relativefilepath" "$(dirname $sourcefile)" \
     "$mydir/clean-ids.xsl" \
     "$actualfile" > "$actualfile.0" 2>> "$tmpdir/neededstuff"
   mv $actualfile.0 $actualfile
@@ -126,7 +126,9 @@ entitiesneeded="$(sed -n -r 's/^need-entity:// p' $tmpdir/neededstuff | sort | u
 
 imagesneeded="$(cat $tmpdir/neededstuff | sed -n 's/need-image:// p' | sort | uniq)"
 for image in $imagesneeded; do
-  cp "$baseimagedir/$(basename $(echo $image | sed -r 's/^[^,]+,(.*)$/\1/'))" "$outputpngdir/$(echo $image | sed -r 's/^([^,]+).*$/\1/')"
+  originalpath="$(echo $image | sed -r 's/^[^,]+,(.*)$/\1/')"
+  newname="$(echo $image | sed -r 's/^([^,]+).*$/\1/')"
+  cp "$basedir/$originalpath" "$outputpngdir/$newname"
 done
 
 daps -d "$dcfile" xmlformat
