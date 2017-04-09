@@ -32,6 +32,10 @@ xsltproc --novalid "$mydir/map-to-MAIN.xsl" "$inputmap" > "$mainfile" 2> "$tmpdi
 ## Find the source files in the ditamap
 sourcefiles="$(sed -n -r 's/^source-file:// p' $tmpdir/includes)"
 
+# This should prevent SNAFUs when the user is not in the dir with the ditamap
+# already...
+cd "$basedir"
+
 # Include conrefs
 
 for sourcefile in $sourcefiles; do
@@ -41,6 +45,17 @@ for sourcefile in $sourcefiles; do
     --stringparam "relativefilepath" "$(dirname $sourcefile)"\
     "$mydir/resolve-conrefs.xsl" \
     "$basedir/$sourcefile" > "$tmpdir/$sourcefile"
+
+  # Rinse and repeat while there are still conrefs left. This is dumb but
+  # effective and does not involve overly complicated XSLT.
+  while [[ $(xmllint --xpath '//*[@conref]' "$tmpdir/$sourcefile" 2> /dev/null) ]]; do
+    xsltproc \
+      --stringparam "basepath" "$basedir"\
+      --stringparam "relativefilepath" "$(dirname $sourcefile)"\
+      "$mydir/resolve-conrefs.xsl" \
+      "$tmpdir/$sourcefile" > "$tmpdir/$sourcefile-0"
+    mv "$tmpdir/$sourcefile-0" "$tmpdir/$sourcefile"
+  done
 done
 
 ## Modify the original DITA files to get rid of duplicate IDs.
