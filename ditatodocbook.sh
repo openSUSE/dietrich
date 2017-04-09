@@ -132,7 +132,7 @@ for image in $imagesneeded; do
   cp "$basedir/$originalpath" "$outputpngdir/$newname"
 done
 
-daps -d "$dcfile" xmlformat
+daps -d "$dcfile" xmlformat > /dev/null
 
 echo ""
 echo "Temporary directory: $tmpdir"
