@@ -15,12 +15,11 @@ inputbasename="$(basename $1 | sed -r 's/.ditamap$//')"
 ## Output
 outputdir="$basedir/converted/$inputbasename"
 outputxmldir="$outputdir/xml"
-outputpngdir="$outputdir/images/src/png"
+outputimagedir="$outputdir/images/src"
 
 ## Create temporary/output dirs
 tmpdir=$(mktemp -d -p '/tmp' -t 'db-convert-XXXXXXX')
 mkdir -p "$outputxmldir" 2> /dev/null
-mkdir -p "$outputpngdir" 2> /dev/null
 
 ## From the ditamap, create a MAIN file.
 
@@ -127,12 +126,15 @@ entitiesneeded="$(sed -n -r 's/^need-entity:// p' $tmpdir/neededstuff | sort | u
 
 imagesneeded="$(cat $tmpdir/neededstuff | sed -n 's/need-image:// p' | sort | uniq)"
 for image in $imagesneeded; do
-  originalpath="$(echo $image | sed -r 's/^[^,]+,(.*)$/\1/')"
-  newname="$(echo $image | sed -r 's/^([^,]+).*$/\1/')"
-  cp "$basedir/$originalpath" "$outputpngdir/$newname"
+  sourceimage="$(echo $image | sed -r 's/^[^,]+,(.*)$/\1/')"
+  outputimage="$(echo $image | sed -r 's/^([^,]+).*$/\1/')"
+  imagetype="$(echo $outputimage | grep -oP '[a-z0-9]+$')"
+  mkdir -p "$outputimagedir/$imagetype" 2> /dev/null
+  cp "$basedir/$sourceimage" "$outputimagedir/$imagetype/$outputimage"
 done
 
 daps -d "$dcfile" xmlformat > /dev/null
+daps -d "$dcfile" optipng > /dev/null
 
 echo ""
 echo "Temporary directory: $tmpdir"
