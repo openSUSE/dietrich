@@ -1,6 +1,6 @@
 #! /bin/bash
 # Usage:
-#   ditatodocbook.sh [DITAMAP]
+#   $0 [DITAMAP]
 #
 # Configuration:
 #   * Add a file called conversion.conf to the directory of your DITAMAP
@@ -12,19 +12,19 @@
 #     + styleroot: Style root to write into the DC file. (default: none)
 #     + cleanup: Delete temporary directory after conversion. (default: 1)
 
+
+## This script
+me="$(test -L "$0" && readlink "$0" || echo "$0")"
+mydir="$(realpath $(dirname $me))"
+
 if [[ $1 == '--help' ]] || [[ $1 == '-h' ]] || [[ ! $1 ]]; then
-  sed -rn '/#!/{n; p; :loop n; p; /^[ \t]*$/q; b loop}' $0 | sed -r 's/^# ?//'
+  sed -rn '/#!/{n; p; :loop n; p; /^[ \t]*$/q; b loop}' $0 | sed -r -e 's/^# ?//' -e "s/\\\$0/$(basename $0)/"
   exit
 fi
-
-## This tool
-mydir="$(realpath $(dirname $0))"
 
 ## Input
 inputmap="$1"
 basedir="$(realpath $(dirname $inputmap))"
-# FIXME: The image directory is totally hard-coded, so does not work
-# correctly on non-Fujitsu-CMM stuff
 inputbasename="$(basename $1 | sed -r 's/.ditamap$//')"
 
 ## Configurable options
@@ -165,7 +165,7 @@ daps -d "$dcfile" xmlformat > /dev/null
 daps -d "$dcfile" optipng > /dev/null
 
 echo ""
-if [[ $cleanup = 1 ]]; then
+if [[ ! $cleanup == 0 ]]; then
   rm -r $tmpdir
 else
   echo "Temporary directory: $tmpdir"
