@@ -11,6 +11,9 @@
 #         (default: [DITAMAP's_DIR]/converted/[DITAMAP's_NAME])
 #     + styleroot: Style root to write into the DC file. (default: none)
 #     + cleanup: Delete temporary directory after conversion. (default: 1)
+#
+# Package Dependencies on openSUSE:
+#   daps dita saxon9-scripts
 
 
 ## This script
