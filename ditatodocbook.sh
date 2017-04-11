@@ -6,11 +6,11 @@
 #   * Add a file called conversion.conf to the directory of your DITAMAP
 #   * The configuration file will be sourced by the script
 #   * Recognized options:
-#     + outputdir: The directory to place output in. Can but does not have to
+#     + OUTPUTDIR: The directory to place output in. Can but does not have to
 #         exist. Existing files will be overwritten mercilessly.
 #         (default: [DITAMAP's_DIR]/converted/[DITAMAP's_NAME])
-#     + styleroot: Style root to write into the DC file. (default: none)
-#     + cleanup: Delete temporary directory after conversion. (default: 1)
+#     + STYLEROOT: Style root to write into the DC file. (default: none)
+#     + CLEANUP: Delete temporary directory after conversion. (default: 1)
 #
 # Package Dependencies on openSUSE:
 #   daps dita saxon9-scripts
@@ -31,17 +31,17 @@ basedir="$(realpath $(dirname $inputmap))"
 inputbasename="$(basename $1 | sed -r 's/.ditamap$//')"
 
 ## Configurable options
-outputdir="$basedir/converted/$inputbasename"
-styleroot=""
-cleanup=1
+OUTPUTDIR="$basedir/converted/$inputbasename"
+STYLEROOT=""
+CLEANUP=1
 
 ## Source a config file, if any
 # This is an evil security issue but let's ignore that for the moment.
 test -s "$basedir/conversion.conf" && . "$basedir/conversion.conf" || true
 
 ## Output (fix)
-outputxmldir="$outputdir/xml"
-outputimagedir="$outputdir/images/src"
+outputxmldir="$OUTPUTDIR/xml"
+outputimagedir="$OUTPUTDIR/images/src"
 
 ## Create temporary/output dirs
 tmpdir=$(mktemp -d -p '/tmp' -t 'db-convert-XXXXXXX')
@@ -114,11 +114,11 @@ done
 
 ## Create a very basic DC file
 
-dcfile="$outputdir/DC-$inputbasename"
+dcfile="$OUTPUTDIR/DC-$inputbasename"
 {
   echo "MAIN=$(basename $mainfile)"
-  if [[ $styleroot != '' ]]; then
-    echo "STYLEROOT=$styleroot"
+  if [[ $STYLEROOT != '' ]]; then
+    echo "STYLEROOT=$STYLEROOT"
   fi
 } > "$dcfile"
 
@@ -168,9 +168,9 @@ daps -d "$dcfile" xmlformat > /dev/null
 daps -d "$dcfile" optipng > /dev/null
 
 echo ""
-if [[ ! $cleanup == 0 ]]; then
+if [[ ! $CLEANUP == 0 ]]; then
   rm -r $tmpdir
 else
   echo "Temporary directory: $tmpdir"
 fi
-echo "Output directory:    $outputdir"
+echo "Output directory:    $OUTPUTDIR"
