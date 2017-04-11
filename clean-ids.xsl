@@ -61,7 +61,9 @@
     </xsl:if>
   </xsl:template>
 
-  <xsl:template match="@remap|@*[. = '']|@moreinfo[. = 'none']|emphasis/@role[. = 'italic']|informalfigure/@float"/>
+  <xsl:template
+    match="@remap|@*[. = '']|@moreinfo[. = 'none']|@inheritnum[. = 'ignore']|
+           @float|@continuation[. ='restarts']|emphasis/@role[. = 'italic']"/>
 
   <!-- We get a list of linkends, all IDs that are not part of that list are
   removed here. -->
