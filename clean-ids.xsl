@@ -157,4 +157,11 @@
     <citetitle>FIXME: broken external xref</citetitle>
   </xsl:template>
 
+  <!-- The concept of remarks appears to be unknown... this is really only
+  for Fujitsu docs. Bit scary to have this in here. -->
+  <xsl:template match="emphasis[emphasis[@role='bold'][translate(., 'abcdefghijklmnoprstuvwxyz-_+:.?! ', 'ABCDEFGHIJKLMNOPRSTUVWXYZ') = 'PENDING']]">
+   <xsl:message>WARNING: b/i converted to remark.</xsl:message>
+   <remark><xsl:apply-templates/></remark>
+  </xsl:template>
+
 </xsl:stylesheet>
