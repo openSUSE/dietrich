@@ -46,6 +46,10 @@
     </xsl:element>
   </xsl:template>
 
+  <!-- These comments tend to introduce spaces before punctuation when
+  xmlformat is run over them, so remove them. -->
+  <xsl:template match="comment()[starts-with(.,'@CONREF:')]"/>
+
   <xsl:template name="generate-imports">
     <xsl:param name="input" select="','"/>
     <xsl:variable name="file" select="substring-before($input, ',')"/>
@@ -57,7 +61,7 @@
     </xsl:if>
   </xsl:template>
 
-  <xsl:template match="@remap|@*[. = '']"/>
+  <xsl:template match="@remap|@*[. = '']|@moreinfo[. = 'none']|emphasis/@role[. = 'italic']|informalfigure/@float"/>
 
   <!-- We get a list of linkends, all IDs that are not part of that list are
   removed here. -->
@@ -111,6 +115,18 @@
     <xsl:attribute name="fileref"><xsl:value-of select="$file"/></xsl:attribute>
   </xsl:template>
 
+  <!-- <sidebar/> is not so super compatible with our stylesheets:
+   * PDF: multi-page sidebars have generally destroyed rendering
+   * HTML: sidebar titles are generated wrongly
+   => fix the symptom here and just generate bridgeheads
+  -->
+  <xsl:template match="sidebar">
+    <xsl:apply-templates/>
+  </xsl:template>
+  <xsl:template match="sidebar/title">
+    <bridgehead renderas="sect4"><xsl:apply-templates/></bridgehead>
+  </xsl:template>
+
   <xsl:template match="literal/emphasis">
     <replaceable><xsl:apply-templates/></replaceable>
   </xsl:template>
@@ -119,8 +135,20 @@
     <xsl:apply-templates/>
   </xsl:template>
 
+  <!-- Fight the weird habit of people putting underline/italic emphases into
+  ulinks.
+  FIXME: removing all those italic emphases might be a bit of an overreach...
+  -->
+  <xsl:template match="emphasis[@role='underline'][ancestor::ulink]|emphasis[@role='italic'][ancestor::ulink]">
+    <xsl:apply-templates/>
+  </xsl:template>
+
   <xsl:template match="inlinemediaobject[not(ancestor::para or ancestor::title or ancestor::remark or ancestor::entry)]">
     <mediaobject><xsl:apply-templates/></mediaobject>
+  </xsl:template>
+
+  <xsl:template match="programlisting">
+    <screen><xsl:apply-templates/></screen>
   </xsl:template>
 
   <xsl:template match="xref[@linkend='']">
