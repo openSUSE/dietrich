@@ -27,6 +27,12 @@ fi
 
 ## Input
 inputmap="$1"
+
+if [[ ! -f "$inputmap" ]]; then
+  echo "(meh) The file $inputmap does not seem to exist."
+  exit
+fi
+
 basedir="$(realpath $(dirname $inputmap))"
 inputbasename="$(basename $1 | sed -r 's/.ditamap$//')"
 
