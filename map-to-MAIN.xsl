@@ -41,7 +41,7 @@
 
   <!-- Ignore the element. -->
   <!-- FIXME: ignoring prodname makes me feel a bit uneasy... -->
-  <xsl:template match="bookmeta|bookrights|bookid|series|component|brand|prodname"/>
+  <xsl:template match="bookmeta|bookrights|bookid|series|component|brand|prodname|vrm"/>
 
   <!-- Any other types of maps necessary? -->
   <xsl:template match="bookmap">
@@ -60,17 +60,21 @@
     </bookinfo>
   </xsl:template>
 
+  <!-- The Fujitsu docs use both prodname ("ServerView") and Prognum ("CMM
+  V1.3"). Using the one that said CMM seemed more fitting here. And we'll
+  have to change that anyway before the conversion. -->
   <xsl:template match="prognum">
     <productname>
       <xsl:apply-templates/>
     </productname>
   </xsl:template>
 
-  <xsl:template match="vrm">
+  <!-- I think I have misunderstood the meaning of the vrm element... -->
+  <!-- <xsl:template match="vrm">
     <productnumber>
       <xsl:value-of select="@version"/>
     </productnumber>
-  </xsl:template>
+  </xsl:template> -->
 
   <!-- XIncludes directly in MAIN. -->
   <xsl:template match="*[@href]">
