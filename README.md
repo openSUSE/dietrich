@@ -1,8 +1,9 @@
 ## DITA to DocBook Conversion for DAPS
 
-Does not work particularly well.
+Occasionally even works as intended. Originally written to import Fujitsu CMM documentation. 
 
-Most content stolen from https://github.com/dita-ot/org.dita.docbook (without going to the trouble of importing Git commits or giving proper credit).
+Most content stolen from https://github.com/dita-ot/org.dita.docbook (without
+going to the trouble of importing Git commits or giving proper credit).
 
 Licensed as Apache 2.0.
 
@@ -11,14 +12,38 @@ Licensed as Apache 2.0.
 
 Packages to install on openSUSE:
 
-* `saxon9`, `saxon9-scripts`
+* `daps`
 * `dita`
+* `saxon9-scripts`
 
 
 ### Usage
 
-1. Pick a `*.ditamap` file and run the script on it:
-   `./ditatodocbook.sh [DITAMAP-FILE]`
-2. Find the output in the subdirectory `converted/[NAME-OF-DITAMAP]` of the
-   directory in which your `*.ditamap` file is located
-3. You can now run `daps validate` on the generated content.
+Pick a `*.ditamap` file and run the script on it:
+`./dtdbcd [DITAMAP-FILE]`
+
+The output path will be printed at the end, by default, it is the subdirectory
+`converted/[NAME-OF-DITAMAP]` of the directory of your `*.ditamap` file.
+
+For more information, run `./dtdbcd --help`.
+
+
+### Configuration
+
+You can add a file called `conversion.conf` to the directory of your
+`*.ditamap` file. Supported options are explained with `./dtdbcd --help`.
+
+`conversion.conf` can contain any valid Bash syntax -- it will be sourced by
+the main Bash script.
+
+### Installation
+
+There is no need to install `dtdbcd`. As long as the dependencies are installed,
+it will JustRun(TM).
+
+However, it might make your life easier to add a symbolic link for `dtdbcd`
+to a directory in your `$PATH`. To do so, run either of the following from
+the checkout directory:
+
+* Local: `ln -s ditatodocbook.sh ~/bin/dtdbcd`
+* Global: `sudo ln -s ditatodocbook.sh /usr/bin/dtdbcd`
