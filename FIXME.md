@@ -1,8 +1,3 @@
-## Known to work for
-
-* fujitsu-cmm: overview.ditamap
-* fujitsu-cmm: osoverview.ditamap (only sorta, but:yay!)
-
 ## Known issues
 
 * Entity file does not contain anything (instead of containing conreffed content). This lowers editability of the converted content somewhat.
@@ -27,8 +22,14 @@
   conref:1/[conref/2, conref/3, conref/4] -> conref/3 and conref/4 would use
   wrong prefix paths because the preceding @CONREF: comment is a @CONREF:end
   which means relativefilepath will be used as the prefix (??)
-* suse-xsl issue or fop 1.1 issue? sidebar/itemizedlist/listitem comes out with
-  negative margins between (some) listitems, sxsl2.0.6.3, fop1.1, osoperator,
-  sec 1.2, "Monitoring" sidebar (PDF)
-* suse-xsl issue: sidebar titles are completely disfigured: whole text is
-  generated for the number
+
+
+## Issues that have been worked around
+
+* Instead of `<sidebar/>`, we now use `<bridgehead/>`s, so we don't see the
+  following issues any more:
+  * suse-xsl issue or fop 1.1 issue? sidebar/itemizedlist/listitem comes out
+    with negative margins between (some) listitems, sxsl2.0.6.3, fop1.1,
+    osoperator, sec 1.2, "Monitoring" sidebar (PDF)
+  * suse-xsl issue: sidebar titles are completely disfigured: whole text is
+    generated for .number
