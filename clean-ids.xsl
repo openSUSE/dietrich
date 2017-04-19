@@ -49,6 +49,10 @@
   <!-- These comments tend to introduce spaces before punctuation when
   xmlformat is run over them, so remove them. -->
   <xsl:template match="comment()[starts-with(.,'@CONREF:')]"/>
+  <!-- I think the <phrase> template from topic2db.xsl is responsible for
+  some empty nodes that destroy formatting (i.e. add spaces before periods
+  etc.). However, let's not bother with that and do it here. -->
+  <xsl:template match="text()[not(normalize-space(.))][following::node()[1][self::comment()[starts-with(.,'@CONREF:')]]]"/>
 
   <xsl:template name="generate-imports">
     <xsl:param name="input" select="','"/>
