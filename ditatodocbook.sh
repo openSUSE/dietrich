@@ -1,6 +1,8 @@
 #! /bin/bash
 # Usage:
-#   $0 [DITAMAP]
+#   $0 [DITAMAP] [-v]
+#
+#   -v      Use verbose mode
 #
 # Configuration:
 #   * Add a file called conversion.conf to the directory of your DITAMAP
@@ -10,7 +12,8 @@
 #         exist. Existing files will be overwritten mercilessly.
 #         (default: [DITAMAP's_DIR]/converted/[DITAMAP's_NAME])
 #     + STYLEROOT: Style root to write into the DC file. (default: none)
-#     + CLEANUP: Delete temporary directory after conversion. (default: 1)
+#     + CLEANTEMP: Delete temporary directory after conversion. (default: 1)
+#     + CLEANID: Remove IDs that are not used as linkends. (default: 0)
 #
 # Package Dependencies on openSUSE:
 #   daps dita saxon9-scripts
@@ -36,14 +39,31 @@ fi
 basedir="$(realpath $(dirname $inputmap))"
 inputbasename="$(basename $1 | sed -r 's/.ditamap$//')"
 
+verbose=0
+if [[ $2 == '-v' ]]; then
+  verbose=1
+fi
+
 ## Configurable options
 OUTPUTDIR="$basedir/converted/$inputbasename"
 STYLEROOT=""
-CLEANUP=1
+CLEANTEMP=1
+CLEANID=0
 
 ## Source a config file, if any
 # This is an evil security issue but let's ignore that for the moment.
-test -s "$basedir/conversion.conf" && . "$basedir/conversion.conf" || true
+if [[ -s "$basedir/conversion.conf" ]]; then
+  options="$(sed -rn '/#!/{n; p; :loop n; p; /^[ \t]*$/q; b loop}' $0 | sed -r -n 's/^# +\+ ([^:]+):.*/\1/ p' | tr '\n' '|' | sed -r 's/\|$//')"
+  if [[ $verbose == 1 ]]; then
+    echo "Available options: $(echo $options | sed -r 's/\|/ /g')"
+    echo -n "Options recognized in conversion.conf: "
+    sed -rn "s/[ \t]*($options)=.*/\1/ p" "$basedir/conversion.conf" | tr '\n' ' '
+    echo -e "\n  (See --help for information.)"
+  fi
+  . "$basedir/conversion.conf" || true
+else
+  echo "Did not find conversion.conf: Using default settings."
+fi
 
 ## Output (fix)
 outputxmldir="$OUTPUTDIR/xml"
@@ -89,27 +109,18 @@ for sourcefile in $sourcefiles; do
 done
 
 ## Modify the original DITA files to get rid of duplicate IDs.
-
-allids="$(xsltproc $mydir/find-ids.xsl $sourcefiles | sort)"
-uniqueids=$(echo -e "$allids" | uniq)
-nonuniqueids=$(comm -2 -3 <(echo -e "$allids") <(echo -e "$uniqueids") 2> /dev/null | uniq | tr '\n' '|' | sed 's/|$//')
+tempsourcefiles=$(echo $sourcefiles | sed -r "s,[^ ]+,$tmpdir/&,g")
+allids="$(xmllint --xpath '//@id|//@xml:id' $tempsourcefiles | tr ' ' '\n' | sed -r -e 's/^(xml:)?id=\"//' -e 's/\"$//' | sort)"
+nonuniqueids=$(echo -e "$allids" | uniq -d | tr '\n' ' ')
 
 for sourcefile in $sourcefiles; do
-  hasnuids=$(grep -noP " id=\"($nonuniqueids)\"" "$tmpdir/$sourcefile")
-  countnuids=$(echo "$hasnuids" | wc -l)
-  if [[ ! "$hasnuids" ]]; then
-   countnuids=0
-  fi
-  if [[ "$countnuids" -gt 0 ]]; then
-    for line in $(echo -e "$hasnuids" | sed -r 's/^([0-9]+).*/\1/'); do
-      # FIXME: Will do dumb things if there are multiple IDs on a line but
-      # just one is supposed to be replaced. Fingers crossed & hope for the best.
-      paul="$(( ( RANDOM % 9999999 ) + 1 ))"
-      sed -i -r "${line}s/\bid=\"[^\"]+\"/id=\"id${paul}\"/g" "$tmpdir/$sourcefile"
-    done
-  fi
+    xsltproc \
+      --stringparam "nonuniqueids" "$nonuniqueids"\
+      --stringparam "self" "$sourcefile"\
+      "$mydir/create-unique-ids.xsl" \
+      "$tmpdir/$sourcefile" > "$tmpdir/$sourcefile-0"
+    mv "$tmpdir/$sourcefile-0" "$tmpdir/$sourcefile"
 done
-
 
 ## Actual conversion
 for sourcefile in $sourcefiles; do
@@ -131,8 +142,12 @@ dcfile="$OUTPUTDIR/DC-$inputbasename"
 ## Collect linkends, clean up all the IDs that are not used, also clean up
 ## filerefs in imageobjects and replace ex-conref'd contents with entities.
 
-# FIXME: Do we still want to clean up all the ID names? It should not hurt
-linkends=$(grep -oP "\blinkend=\"[^\"]+\"" $outputxmldir/*.xml | sed -r -e 's/(^[^:]+:linkend=\"|\"$)//g' | uniq | tr '\n' ' ' | sed -e 's/^./ &/g' -e 's/.$/& /g' )
+# By default, let's not clean up IDs...
+linkends=""
+if [[ $CLEANID == 1 ]]; then
+  linkends=" $(xmllint --xpath '//@id|//@xml:id' $sourcefiles | tr ' ' '\n' | sed -r -e 's/^(xml:)?id=\"//' -e 's/\"$//' | sort) "
+fi
+
 for sourcefile in $sourcefiles; do
   # FIXME: We are generating these variables twice. Seems suboptimal.
   outputfile="$(echo $sourcefile | sed -r 's_[/, ]_-_g')"
@@ -174,7 +189,7 @@ daps -d "$dcfile" xmlformat > /dev/null
 daps -d "$dcfile" optipng > /dev/null
 
 echo ""
-if [[ ! $CLEANUP == 0 ]]; then
+if [[ ! $CLEANTEMP == 0 ]]; then
   rm -r $tmpdir
 else
   echo "Temporary directory: $tmpdir"

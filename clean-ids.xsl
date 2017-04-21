@@ -70,10 +70,12 @@
            @float|@continuation[. ='restarts']|emphasis/@role[. = 'italic']"/>
 
   <!-- We get a list of linkends, all IDs that are not part of that list are
-  removed here. -->
-  <xsl:template match="@id">
-    <xsl:if test="contains($linkends, concat(' ', self::node(), ' '))">
-      <xsl:attribute name="id"><xsl:apply-templates/></xsl:attribute>
+  removed here. If we don't get anything (not even a space), we don't do
+  anything. -->
+  <xsl:template match="@id|@xml:id">
+    <xsl:if test="contains($linkends, concat(' ', self::node(), ' ')) or
+                  string-length($linkends) = 0">
+      <xsl:attribute name="{name(.)}"><xsl:apply-templates/></xsl:attribute>
     </xsl:if>
   </xsl:template>
 
