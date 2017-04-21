@@ -79,6 +79,9 @@
     </xsl:if>
   </xsl:template>
 
+  <!-- Always remove IDs from phrases, however. Those are just annoying. -->
+  <xsl:template match="phrase/@id|phrase/@xml:id"/>
+
   <!-- Does not really fit here, but ... oh well: Create an entity definition
   from those weird converted conrefs. -->
   <xsl:template match="inlinemediaobject[contains(imageobject/imagedata/@fileref, '.xml#')]|mediaobject[contains(imageobject/imagedata/@fileref, '.xml#')]" priority="10">
