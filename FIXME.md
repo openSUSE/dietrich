@@ -1,3 +1,7 @@
+## Enhancements
+* support for DITA profiling attributes (?): audience platform product props otherprops rev
+* support for excluding/replacing sections (?)
+
 ## Known issues
 
 * Entity file does not contain anything (instead of containing conreffed content). This lowers editability of the converted content somewhat.
@@ -15,8 +19,6 @@
   "../../shared/intro/c-intro.xml", comes out with empty linkend -> hard to
   fix properly correctly, especially if we are thinking about shipping only
   part of the docs. Maybe I can generate a citetitle?
-* duplicate IDs still persist somehow (lots of errors caught in the
-  neededstuff file)
 * @CONREF:start/@CONREF:end search behavior is/should be wrong for cases
   involving the second+ conref of multiple conrefs nested into another; i.e.:
   conref:1/[conref/2, conref/3, conref/4] -> conref/3 and conref/4 would use
