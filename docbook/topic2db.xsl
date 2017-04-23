@@ -1291,13 +1291,17 @@ DATA-TYPE PHRASES: date time currency char num bin oct dec hex ???
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
 <xsl:template name="setStandardAttr">
   <xsl:param name="IDPrefix" select="local-name(.)"/>
-  <xsl:if test="not( @id )">
+  <!-- Not sure what the point behind adding an ID to every single para would
+  be... Commenting to avoid validation issues that appear because
+  generate-id() creates the same IDs in different files. I hope this does not
+  result in dangling xrefs. -->
+  <!-- <xsl:if test="not( @id )">
     <xsl:attribute name="id">
       <xsl:call-template name="provideID">
         <xsl:with-param name="IDPrefix" select="$IDPrefix"/>
       </xsl:call-template>
     </xsl:attribute>
-  </xsl:if>
+  </xsl:if> -->
   <xsl:attribute name="remap">
     <xsl:value-of select="local-name(.)"/>
   </xsl:attribute>
