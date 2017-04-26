@@ -82,18 +82,8 @@
   <!-- Always remove IDs from phrases, however. Those are just annoying. -->
   <xsl:template match="phrase/@id|phrase/@xml:id"/>
 
-  <!-- Does not really fit here, but ... oh well: Create an entity definition
-  from those weird converted conrefs. -->
-  <xsl:template match="inlinemediaobject[contains(imageobject/imagedata/@fileref, '.xml#')]|mediaobject[contains(imageobject/imagedata/@fileref, '.xml#')]" priority="10">
-    <xsl:variable name="entity" select="translate(substring-after(imageobject/imagedata/@fileref, '.xml#'), '/\ ,;@&amp;', '-')"/>
-    <xsl:message>need-entity:<xsl:value-of select="$entity"/>,<xsl:value-of select="imageobject/imagedata/@fileref"/></xsl:message>
-    <xsl:text disable-output-escaping="yes">&amp;</xsl:text>
-    <xsl:value-of select="$entity"/>
-    <xsl:text>;</xsl:text>
-  </xsl:template>
-
-  <!-- Any filerefs that are left now should always be valid because the
-  idiotic conref conversions are already excluded at this point. -->
+  <!-- Rewrite paths to images, because DAPS needs images to be in a defined
+  place. -->
   <xsl:template match="imagedata/@fileref">
     <xsl:variable name="prefixpath-candidate">
       <!-- Sooo, let's try to check whether there is either an
