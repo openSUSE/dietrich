@@ -13,7 +13,7 @@
 #         (default: [DITAMAP's_DIR]/converted/[DITAMAP's_NAME])
 #     + STYLEROOT: Style root to write into the DC file. (default: none)
 #     + CLEANTEMP: Delete temporary directory after conversion. (default: 1)
-#     + CLEANID: Remove IDs that are not used as linkends. (default: 0)
+#     + CLEANID: Remove IDs that are not used as linkends. (default: 1)
 #
 # Package Dependencies on openSUSE:
 #   daps dita saxon9-scripts
@@ -48,7 +48,7 @@ fi
 OUTPUTDIR="$basedir/converted/$inputbasename"
 STYLEROOT=""
 CLEANTEMP=1
-CLEANID=0
+CLEANID=1
 
 ## Source a config file, if any
 # This is an evil security issue but let's ignore that for the moment.
