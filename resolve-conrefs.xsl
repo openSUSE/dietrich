@@ -6,6 +6,21 @@
   <xsl:param name="basepath" select="''"/>
   <xsl:param name="relativefilepath" select="''"/>
 
+  <!-- Since comments are not really part of the document structure, I have to
+  keep track of how many levels of conrefs there were before manually. -->
+  <xsl:variable name="parent-level">
+    <xsl:choose>
+    <xsl:when test="//comment()[starts-with(., '@CONREF:')]">
+      <!-- Since all unresolved conrefs have the same level we can just find
+      out what level the first one is. -->
+      <xsl:value-of select="substring-before(substring-after(//*[@conref]/preceding::comment()[starts-with(., '@CONREF:start')][1], '@CONREF:start,level-'),' ')"/>
+    </xsl:when>
+    <xsl:otherwise>0</xsl:otherwise>
+    </xsl:choose>
+  </xsl:variable>
+  <xsl:variable name="level" select="$parent-level + 1"/>
+
+
   <xsl:template match="@*|node()" priority="-1">
     <xsl:copy>
       <xsl:apply-templates select="@*|node()"/>
@@ -20,14 +35,8 @@
       XML structure, so I can only use the preceding::/following:: axes. I
       should still be fine however, as long as I make sure to always add an
       @CONREF:end comment. -->
-      <!-- FIXME: This handles conrefs wrongly if they are nested and are not
-      the first within their "nest." conref:1/[conref/2, conref/3, conref/4] ->
-      conref/3 and conref/4 are wrongly empty here. -->
-      <!-- Instead, I need to add the relpath#id to the @CONREF:end comments
-      too, then I can easily match which one is the first that is still open.
-      substring-after($myconrefvalue,' '), preceding this node...?-->
-      <xsl:if test="preceding::comment()[starts-with(., '@CONREF:')][1][starts-with(., '@CONREF:start ')]">
-        <xsl:value-of select="substring-after(preceding::comment()[starts-with(., '@CONREF:start ')][1], '@CONREF:start ')"/>
+      <xsl:if test="preceding::comment()[starts-with(., '@CONREF:')][1][starts-with(., concat('@CONREF:start,level-', $parent-level))]">
+        <xsl:value-of select="substring-after(preceding::comment()[starts-with(., '@CONREF:start')][1], ' ')"/>
       </xsl:if>
     </xsl:variable>
     <xsl:variable name="prefixpath">
@@ -65,9 +74,13 @@
     </xsl:variable>
     <!-- FIXME: No guarantee that we don't have invalid chars like dash dash
     in these comments. -->
-    <xsl:comment>@CONREF:start <xsl:value-of select="concat($relpath, '#', $relevant-id)"/></xsl:comment>
+    <xsl:comment>
+      <xsl:text>@CONREF:start,level-</xsl:text>
+      <xsl:value-of select="$level"/><xsl:text> </xsl:text>
+      <xsl:value-of select="concat($relpath, '#', $relevant-id)"/>
+    </xsl:comment>
     <xsl:copy-of select="document($abspath)//*[@id = $relevant-id][1]"/>
-    <xsl:comment>@CONREF:end </xsl:comment>
+    <xsl:comment>@CONREF:end,level-<xsl:value-of select="$level"/> </xsl:comment>
   </xsl:template>
 
   <xsl:template name="relevant-id">

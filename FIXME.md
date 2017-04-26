@@ -19,12 +19,6 @@
   "../../shared/intro/c-intro.xml", comes out with empty linkend -> hard to
   fix properly correctly, especially if we are thinking about shipping only
   part of the docs. Maybe I can generate a citetitle?
-* @CONREF:start/@CONREF:end search behavior is/should be wrong for cases
-  involving the second+ conref of multiple conrefs nested into another; i.e.:
-  conref:1/[conref/2, conref/3, conref/4] -> conref/3 and conref/4 would use
-  wrong prefix paths because the preceding @CONREF: comment is a @CONREF:end
-  which means relativefilepath will be used as the prefix (??)
-
 
 ## Issues that have been worked around
 
