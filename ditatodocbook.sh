@@ -14,6 +14,11 @@
 #     + STYLEROOT: Style root to write into the DC file. (default: none)
 #     + CLEANTEMP: Delete temporary directory after conversion. (default: 1)
 #     + CLEANID: Remove IDs that are not used as linkends. (default: 1)
+#     + TWEAK: Space separated list of vendor tweaks to apply.
+#         (default: [none], available:
+#           "fujitsu" - convert emphases starting with "PENDING:" to <remark/>s,
+#              remove emphases from link text
+#         )
 #
 # Package Dependencies on openSUSE:
 #   daps dita saxon9-scripts
@@ -49,6 +54,7 @@ OUTPUTDIR="$basedir/converted/$inputbasename"
 STYLEROOT=""
 CLEANTEMP=1
 CLEANID=0
+TWEAK=""
 
 ## Source a config file, if any
 # This is an evil security issue but let's ignore that for the moment.
@@ -160,6 +166,7 @@ for sourcefile in $sourcefiles; do
     --stringparam "root" "$root" \
     --stringparam "includes" "$includes" \
     --stringparam "relativefilepath" "$(dirname $sourcefile)" \
+    --stringparam "tweaks" " $TWEAK " \
     "$mydir/clean-ids.xsl" \
     "$outputpath" > "$outputpath.0" 2>> "$tmpdir/neededstuff"
   mv $outputpath.0 $outputpath

@@ -7,6 +7,7 @@
   <xsl:param name="root" select="''"/>
   <xsl:param name="includes" select="''"/>
   <xsl:param name="relativefilepath" select="''"/>
+  <xsl:param name="tweaks" select="''"/>
 
   <xsl:variable name="actual-root">
     <xsl:choose>
@@ -137,11 +138,20 @@
   </xsl:template>
 
   <!-- Fight the weird habit of people putting underline/italic emphases into
-  ulinks.
-  FIXME: removing all those italic emphases might be a bit of an overreach...
-  -->
-  <xsl:template match="emphasis[@role='underline'][ancestor::ulink]|emphasis[@role='italic'][ancestor::ulink]">
-    <xsl:apply-templates/>
+  ulinks. -->
+  <xsl:template match="emphasis[ancestor::ulink]">
+    <xsl:choose>
+      <xsl:when test="contains($tweaks, ' fujitsu ')">
+        <!-- FIXME: For reasons unknown to me, adding @*| to the
+        apply-templates here makes this fail for some documents. -->
+        <xsl:apply-templates select="node()"/>
+      </xsl:when>
+      <xsl:otherwise>
+        <emphasis>
+          <xsl:apply-templates select="@*|node()"/>
+        </emphasis>
+      </xsl:otherwise>
+    </xsl:choose>
   </xsl:template>
 
   <xsl:template match="inlinemediaobject[not(ancestor::para or ancestor::title or ancestor::remark or ancestor::entry)]">
@@ -156,11 +166,19 @@
     <citetitle>FIXME: broken external xref</citetitle>
   </xsl:template>
 
-  <!-- The concept of remarks appears to be unknown... this is really only
-  for Fujitsu docs. Bit scary to have this in here. -->
+  <!-- Remarks ... this conversion based on the text content is pretty scary. -->
   <xsl:template match="emphasis[emphasis[@role='bold'][translate(., 'abcdefghijklmnoprstuvwxyz-_+:.?! ', 'ABCDEFGHIJKLMNOPRSTUVWXYZ') = 'PENDING']]">
-   <xsl:message>WARNING: b/i converted to remark.</xsl:message>
-   <remark><xsl:apply-templates/></remark>
+    <xsl:choose>
+      <xsl:when test="contains($tweaks, ' fujitsu ')">
+        <xsl:message>WARNING: b/i converted to remark.</xsl:message>
+        <remark><xsl:apply-templates select="@*|node()"/></remark>
+      </xsl:when>
+      <xsl:otherwise>
+        <emphasis>
+          <xsl:apply-templates select="@*|node()"/>
+        </emphasis>
+      </xsl:otherwise>
+    </xsl:choose>
   </xsl:template>
 
 </xsl:stylesheet>
