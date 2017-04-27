@@ -48,7 +48,7 @@ fi
 OUTPUTDIR="$basedir/converted/$inputbasename"
 STYLEROOT=""
 CLEANTEMP=1
-CLEANID=1
+CLEANID=0
 
 ## Source a config file, if any
 # This is an evil security issue but let's ignore that for the moment.
@@ -145,7 +145,8 @@ dcfile="$OUTPUTDIR/DC-$inputbasename"
 # By default, let's not clean up IDs...
 linkends=""
 if [[ $CLEANID == 1 ]]; then
-  linkends=" $(xmllint --xpath '//@id|//@xml:id' $sourcefiles | tr ' ' '\n' | sed -r -e 's/^(xml:)?id=\"//' -e 's/\"$//' | sort) "
+  # Spaces at the beginning/end are intentional & necessary for XSLT later.
+  linkends=" $(xmllint --xpath '//@linkend' $sourcefiles | tr ' ' '\n' | sed -r -e 's/^linkend=\"//' -e 's/\"$//' | sort) "
 fi
 
 for sourcefile in $sourcefiles; do
