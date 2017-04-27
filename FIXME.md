@@ -1,6 +1,9 @@
 ## Enhancements
 * support for DITA profiling attributes (?): audience platform product props otherprops rev
 * support for excluding/replacing sections (?)
+* given https://github.com/dita-ot/org.dita.docbook/commit/9cca1355 , can we
+  convert the core conversion stuff back down to XSLT 1.0? If so, we'd be able
+  to lose the saxon9 dependency and might be able to save some time
 
 ## Known issues
 
@@ -19,6 +22,12 @@
   "../../shared/intro/c-intro.xml", comes out with empty linkend -> hard to
   fix properly correctly, especially if we are thinking about shipping only
   part of the docs. Maybe I can generate a citetitle?
+* conref resolution works with imprecise IDs: only the last part of of a
+  nested ID is actually used -- if a "bare" ID is available twice in the same
+  XML, we might be importing the wrong part of the document
+* for image filerefs that are part of formerly conreffed content, the wrong
+  path might be generated
+* the name dtdbcd is not memorable
 
 ## Issues that have been worked around
 
