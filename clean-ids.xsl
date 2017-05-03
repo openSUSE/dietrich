@@ -86,6 +86,7 @@
   <!-- Rewrite paths to images, because DAPS needs images to be in a defined
   place. -->
   <xsl:template match="imagedata/@fileref">
+    <xsl:param name="mode" select="''"/>
     <xsl:variable name="prefixpath-candidate">
       <!-- Sooo, let's try to check whether there is either an
       preceding::-@CONREF:start comment. Comments stand outside the normal
@@ -114,7 +115,14 @@
     </xsl:variable>
     <xsl:variable name="file" select="translate($relpath, '/\ ,;@&amp;', '-')"/>
     <xsl:message>need-image:<xsl:value-of select="$file"/>,<xsl:value-of select="$relpath"/></xsl:message>
-    <xsl:attribute name="fileref"><xsl:value-of select="$file"/></xsl:attribute>
+    <xsl:choose>
+      <xsl:when test="$mode='bare'">
+        <xsl:value-of select="$file"/>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:attribute name="fileref"><xsl:value-of select="$file"/></xsl:attribute>
+      </xsl:otherwise>
+    </xsl:choose>
   </xsl:template>
 
   <!-- <sidebar/> is not so super compatible with our stylesheets:
@@ -157,6 +165,39 @@
   <xsl:template match="inlinemediaobject[not(ancestor::para or ancestor::title or ancestor::remark or ancestor::entry)]">
     <mediaobject><xsl:apply-templates/></mediaobject>
   </xsl:template>
+
+  <xsl:template match="imageobject[1]">
+    <xsl:variable name="width">
+      <xsl:choose>
+        <!-- Crudely try to avoid absolute values here. -->
+        <!-- FIXME: This does not check for SNAFUs like 100%+ values. -->
+        <xsl:when test="contains(imagedata[1]/@width, '%')">
+          <xsl:value-of select="imagedata[1]/@width"/>
+        </xsl:when>
+        <xsl:otherwise>75%</xsl:otherwise>
+      </xsl:choose>
+    </xsl:variable>
+    <xsl:variable name="fileref">
+      <xsl:apply-templates select="imagedata[1]/@fileref">
+        <xsl:with-param name="mode" select="'bare'"/>
+      </xsl:apply-templates>
+    </xsl:variable>
+    <xsl:variable name="format">
+      <!-- FIXME: This only works correctly if we have a three-letter file
+      extension. -->
+      <xsl:value-of select="translate(substring($fileref, string-length($fileref) - 2), 'abcdefghijklmnoprstuvwxyz', 'ABCDEFGHIJKLMNOPRSTUVWXYZ')"/>
+    </xsl:variable>
+
+    <imageobject role="fo">
+      <imagedata fileref="{$fileref}" width="{$width}" format="{$format}"/>
+    </imageobject>
+    <imageobject role="html">
+      <imagedata fileref="{$fileref}"/>
+    </imageobject>
+  </xsl:template>
+
+  <!-- FIXME: I can't handle this shit. (yet) -->
+  <xsl:template match="imageobject[not(1)]"/>
 
   <xsl:template match="programlisting">
     <screen><xsl:apply-templates/></screen>

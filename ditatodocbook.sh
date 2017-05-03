@@ -21,7 +21,7 @@
 #         )
 #
 # Package Dependencies on openSUSE:
-#   daps dita saxon9-scripts
+#   daps dita saxon9-scripts imagemagick
 
 
 ## This script
@@ -199,9 +199,15 @@ imagesneeded="$(cat $tmpdir/neededstuff | sed -n 's/need-image:// p' | sort | un
 for image in $imagesneeded; do
   sourceimage="$(echo $image | sed -r 's/^[^,]+,(.*)$/\1/')"
   outputimage="$(echo $image | sed -r 's/^([^,]+).*$/\1/')"
-  imagetype="$(echo $outputimage | grep -oP '[a-z0-9]+$')"
+  imagetype="$(echo $outputimage | grep -ioP '[a-z0-9]+$' | sed -r -e 's/[A-Z]/\L&/g' -e 's/jpeg/jpg/')"
   mkdir -p "$outputimagedir/$imagetype" 2> /dev/null
-  cp "$basedir/$sourceimage" "$outputimagedir/$imagetype/$outputimage"
+  if [[ $imagetype == 'png' ]] || [[ $imagetype == 'jpg' ]]; then
+    # Throw out everything we don't need for building books because FOP might
+    # later choke on non-standard stuff.
+    convert "$basedir/$sourceimage" -strip "$outputimagedir/$imagetype/$outputimage"
+  else
+    cp "$basedir/$sourceimage" "$outputimagedir/$imagetype/$outputimage"
+  fi
 done
 
 daps -d "$dcfile" xmlformat > /dev/null
