@@ -160,7 +160,7 @@ dcfile="$OUTPUTDIR/DC-$inputbasename"
 linkends=""
 if [[ $CLEANID == 1 ]]; then
   # Spaces at the beginning/end are intentional & necessary for XSLT later.
-  linkends=" $(xmllint --xpath '//@linkend' $sourcefiles | tr ' ' '\n' | sed -r -e 's/^linkend=\"//' -e 's/\"$//' | sort) "
+  linkends=" $(xmllint --xpath '//@linkend' $sourcefiles 2> /dev/null | tr ' ' '\n' | sed -r -e 's/^linkend=\"//' -e 's/\"$//' | sort) "
 fi
 
 for sourcefile in $sourcefiles; do
@@ -193,7 +193,7 @@ entitiesneeded="$(sed -n -r 's/^need-entity:// p' $tmpdir/neededstuff | sort | u
 } > "$outputxmldir/entities.ent"
 
 # For images, we do not yet generate file names that include the name of the
-# ditamp file. However, since images don't change with profiling/ditamap
+# ditamap file. However, since images don't change with profiling/ditamap
 # content etc., that should not matter.
 imagesneeded="$(cat $tmpdir/neededstuff | sed -n 's/need-image:// p' | sort | uniq)"
 for image in $imagesneeded; do
