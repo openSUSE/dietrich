@@ -11,7 +11,7 @@
 #     + OUTPUTDIR: The directory to place output in. Can but does not have to
 #         exist. Existing files will be overwritten mercilessly.
 #         (default: [DITAMAP's_DIR]/converted/[DITAMAP's_NAME])
-#     + STYLEROOT: Style root to write into the DC file. (default: none)
+#     + STYLEROOT: Style root to write into the DC file. (default: [none])
 #     + CLEANTEMP: Delete temporary directory after conversion. (default: 1)
 #     + CLEANID: Remove IDs that are not used as linkends. (default: 1)
 #     + TWEAK: Space separated list of vendor tweaks to apply.
@@ -25,8 +25,8 @@
 
 
 ## This script
-me="$(test -L "$0" && readlink "$0" || echo "$0")"
-mydir="$(realpath $(dirname $me))"
+me="$(test -L $(realpath $0) && readlink $(realpath $0) || echo $(realpath $0))"
+mydir="$(dirname $me)"
 
 if [[ $1 == '--help' ]] || [[ $1 == '-h' ]] || [[ ! $1 ]]; then
   sed -rn '/#!/{n; p; :loop n; p; /^[ \t]*$/q; b loop}' $0 | sed -r -e 's/^# ?//' -e "s/\\\$0/$(basename $0)/"
