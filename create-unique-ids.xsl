@@ -4,6 +4,7 @@
   <xsl:param name="nonuniqueids" select="''"/>
   <xsl:param name="nonuniqueids-spaced" select="concat(' ', $nonuniqueids, ' ')"/>
   <xsl:param name="self" select="'me.xml'"/>
+  <xsl:param name="prefix" select="''"/>
 
   <xsl:template match="/" priority="-1">
     <xsl:copy>
@@ -34,7 +35,7 @@
           generate a duplicate ID this way but the chance seems very
           limited: one of the original IDs would have to look exactly as my
           generated IDs. -->
-         <xsl:value-of select="concat('idg-', translate($self,'\/. ','---_'),'-', count((preceding::*|ancestor::*)[@*[local-name(.) = 'id']]))"/>
+         <xsl:value-of select="concat('idg-', $prefix, '-', translate($self,'\/. ','---_'),'-', count((preceding::*|ancestor::*)[@*[local-name(.) = 'id']]))"/>
         </xsl:otherwise>
       </xsl:choose>
     </xsl:attribute>

@@ -64,7 +64,7 @@ if [[ -s "$basedir/conversion.conf" ]]; then
     echo "Available options: $(echo $options | sed -r 's/\|/ /g')"
     echo -n "Options recognized in conversion.conf: "
     sed -rn "s/[ \t]*($options)=.*/\1/ p" "$basedir/conversion.conf" | tr '\n' ' '
-    echo -e "\n  (See --help for information.)"
+    echo -e "\n  (For information, see --help.)"
   fi
   . "$basedir/conversion.conf" || true
 else
@@ -81,9 +81,11 @@ mkdir -p "$outputxmldir" 2> /dev/null
 
 ## From the ditamap, create a MAIN file.
 
-mainfile="$outputxmldir/MAIN.$(basename $1 | sed -r 's/.ditamap$//').xml"
+mainfile="$outputxmldir/MAIN.${inputbasename}.xml"
 # --novalid is necessary for the Fujitsu stuff since we seem to lack the right DTD
-xsltproc --novalid "$mydir/map-to-MAIN.xsl" "$inputmap" > "$mainfile" 2> "$tmpdir/includes"
+xsltproc --novalid "$mydir/map-to-MAIN.xsl" \
+  --stringparam "prefix" "$inputbasename" \
+  "$inputmap" > "$mainfile" 2> "$tmpdir/includes"
 
 ## Find the source files in the ditamap
 sourcefiles="$(sed -n -r 's/^source-file:// p' $tmpdir/includes)"
@@ -123,6 +125,7 @@ for sourcefile in $sourcefiles; do
     xsltproc \
       --stringparam "nonuniqueids" "$nonuniqueids"\
       --stringparam "self" "$sourcefile"\
+      --stringparam "prefix" "$inputbasename"\
       "$mydir/create-unique-ids.xsl" \
       "$tmpdir/$sourcefile" > "$tmpdir/$sourcefile-0"
     mv "$tmpdir/$sourcefile-0" "$tmpdir/$sourcefile"
@@ -130,7 +133,12 @@ done
 
 ## Actual conversion
 for sourcefile in $sourcefiles; do
-  outputfile="$(echo $sourcefile | sed -r 's_[/, ]_-_g')"
+  # We need the name of the ditamap in here, because you might want to
+  # generate DocBook files for multiple ditamaps into the same directory, if
+  # these files then overwrite each other, we might run into issue because
+  # they might include wrong XIncludes (which we might not even notice) or
+  # wrong root elements (which we are more likely to notice)
+  outputfile="${inputbasename}-$(echo $sourcefile | sed -r 's_[/, ]_-_g')"
   outputpath="$outputxmldir/$outputfile"
   saxon9 -xsl:"$mydir/dita2docbook_template.xsl" -s:"$tmpdir/$sourcefile" -o:"$outputpath"
 done
@@ -157,7 +165,7 @@ fi
 
 for sourcefile in $sourcefiles; do
   # FIXME: We are generating these variables twice. Seems suboptimal.
-  outputfile="$(echo $sourcefile | sed -r 's_[/, ]_-_g')"
+  outputfile="${inputbasename}-$(echo $sourcefile | sed -r 's_[/, ]_-_g')"
   outputpath="$outputxmldir/$outputfile"
   root=$(grep -m1 "^file:$outputfile,root:" $tmpdir/includes | sed -r 's_^.+,root:(.+)$_\1_')
   includes=$(grep -P "^append-to:$outputfile,generate-include:" $tmpdir/includes | sed -r 's_^.+,generate-include:(.+)$_\1_' | tr '\n' ',')
@@ -184,6 +192,9 @@ entitiesneeded="$(sed -n -r 's/^need-entity:// p' $tmpdir/neededstuff | sort | u
   done
 } > "$outputxmldir/entities.ent"
 
+# For images, we do not yet generate file names that include the name of the
+# ditamp file. However, since images don't change with profiling/ditamap
+# content etc., that should not matter.
 imagesneeded="$(cat $tmpdir/neededstuff | sed -n 's/need-image:// p' | sort | uniq)"
 for image in $imagesneeded; do
   sourceimage="$(echo $image | sed -r 's/^[^,]+,(.*)$/\1/')"

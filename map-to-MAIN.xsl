@@ -1,6 +1,8 @@
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
   <xsl:output method="xml"/>
 
+  <xsl:param name="prefix" select="''"/>
+
   <xsl:template match="/">
     <!-- Move the xml-stylesheet PI before the DOCTYPE declaration. -->
     <xsl:apply-templates select="node()[normalize-space()][1][self::processing-instruction()]"/>
@@ -113,7 +115,7 @@
 
   <xsl:template name="mangle-filename">
     <xsl:param name="input" select="'NOINPUT'"/>
-    <xsl:value-of select="translate($input,'/,_ ','---')"/>
+    <xsl:value-of select="concat($prefix, '-', translate($input,'/,_ ','---'))"/>
   </xsl:template>
 
   <xsl:template name="changeroot">
