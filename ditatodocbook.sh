@@ -83,8 +83,9 @@ mkdir -p "$outputxmldir" 2> /dev/null
 
 mainfile="$outputxmldir/MAIN.${inputbasename}.xml"
 # --novalid is necessary for the Fujitsu stuff since we seem to lack the right DTD
-xsltproc --novalid "$mydir/map-to-MAIN.xsl" \
+xsltproc --novalid \
   --stringparam "prefix" "$inputbasename" \
+  "$mydir/map-to-MAIN.xsl" \
   "$inputmap" > "$mainfile" 2> "$tmpdir/includes"
 
 ## Find the source files in the ditamap
@@ -118,7 +119,7 @@ done
 
 ## Modify the original DITA files to get rid of duplicate IDs.
 tempsourcefiles=$(echo $sourcefiles | sed -r "s,[^ ]+,$tmpdir/&,g")
-allids="$(xmllint --xpath '//@id|//@xml:id' $tempsourcefiles | tr ' ' '\n' | sed -r -e 's/^(xml:)?id=\"//' -e 's/\"$//' | sort)"
+allids="$(xmllint --xpath '//@id|//@xml:id' $tempsourcefiles 2> /dev/null | tr ' ' '\n' | sed -r -e 's/^(xml:)?id=\"//' -e 's/\"$//' | sort)"
 nonuniqueids=$(echo -e "$allids" | uniq -d | tr '\n' ' ')
 
 for sourcefile in $sourcefiles; do
@@ -132,6 +133,7 @@ for sourcefile in $sourcefiles; do
 done
 
 ## Actual conversion
+outputfiles=""
 for sourcefile in $sourcefiles; do
   # We need the name of the ditamap in here, because you might want to
   # generate DocBook files for multiple ditamaps into the same directory, if
@@ -141,6 +143,9 @@ for sourcefile in $sourcefiles; do
   outputfile="${inputbasename}-$(echo $sourcefile | sed -r 's_[/, ]_-_g')"
   outputpath="$outputxmldir/$outputfile"
   saxon9 -xsl:"$mydir/dita2docbook_template.xsl" -s:"$tmpdir/$sourcefile" -o:"$outputpath"
+
+  # Also generate list of output files for later reuse
+  outputfiles="$outputfiles $outputpath"
 done
 
 ## Create a very basic DC file
@@ -160,13 +165,11 @@ dcfile="$OUTPUTDIR/DC-$inputbasename"
 linkends=""
 if [[ $CLEANID == 1 ]]; then
   # Spaces at the beginning/end are intentional & necessary for XSLT later.
-  linkends=" $(xmllint --xpath '//@linkend' $sourcefiles 2> /dev/null | tr ' ' '\n' | sed -r -e 's/^linkend=\"//' -e 's/\"$//' | sort) "
+  linkends=" $(xmllint --xpath '//@linkend' $outputfiles 2> /dev/null | tr ' ' '\n' | sed -r -e 's/^linkend=\"//' -e 's/\"$//' | sort | uniq | tr '\n' ' ') "
 fi
 
-for sourcefile in $sourcefiles; do
-  # FIXME: We are generating these variables twice. Seems suboptimal.
-  outputfile="${inputbasename}-$(echo $sourcefile | sed -r 's_[/, ]_-_g')"
-  outputpath="$outputxmldir/$outputfile"
+for outputpath in $outputfiles; do
+  outputfile="$(basename $outputpath)"
   root=$(grep -m1 "^file:$outputfile,root:" $tmpdir/includes | sed -r 's_^.+,root:(.+)$_\1_')
   includes=$(grep -P "^append-to:$outputfile,generate-include:" $tmpdir/includes | sed -r 's_^.+,generate-include:(.+)$_\1_' | tr '\n' ',')
   xsltproc \
