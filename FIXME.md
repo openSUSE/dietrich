@@ -7,16 +7,23 @@
 
 ## Known issues
 
-* Entity file does not contain anything (instead of containing conreffed content). This lowers editability of the converted content somewhat.
-    * Crazy-town solution:
-        1. Use Saxon to find out where an ID comes from (i.e. line and char numbers of containing elements begin and end). (Hope that Saxon does not change the line numbers by just reading the file in.)
-        2. Add markers before & after conreffed elements using e.g. sed, to avoid modifying stuff with XML tools. Markers should already contain the expected entity name.
-        3. Convert to DocBook.
-        4. Move content from inside markers into entities (and replace original occurrence with an entity too)
-        5. Make sure that entities do not contain IDs.
-    * Caveats:
-        * Need to be able to expand the list of source files, since original content may come from files that are not part of the source
-    * Other possible solution:
+* for image filerefs that are part of formerly conreffed content, the wrong
+  path might be generated:
+  * some of my conref marker comments are removed by the DITA->DocBook
+    conversion stylesheets
+  * we are not using a reliable method of retrieving the file names
+  -> ideally, we should generate the list of needed images before the
+    conversion when all the marker data is still intact or we could see if
+    other types of markers are both workable and more reliable, such as e.g.
+    tags.
+* entity file does not contain anything (instead of containing conreffed
+  content). This lowers editability of the converted content somewhat.
+  * there is a WIP implementation for this in the branch entity-conversion-wip
+  * the WIP currently mostly fails to work properly because the DITA->DocBook
+    stylesheets remove some conref markers (see above)
+  * additionally, some content that falls out of this may not be valid DocBook,
+    because e.g. literal/phrase and other invalid constructs cannot be filtered
+    any more
 * attempted intra-xrefs fail -- because the files are not collected in a
   `<set/>`, e.g.: tenantuser/about/c-about.xml : xref to
   "../../shared/intro/c-intro.xml", comes out with empty linkend -> hard to
@@ -25,8 +32,6 @@
 * conref resolution works with imprecise IDs: only the last part of of a
   nested ID is actually used -- if a "bare" ID is available twice in the same
   XML, we might be importing the wrong part of the document
-* for image filerefs that are part of formerly conreffed content, the wrong
-  path might be generated
 * the name dtdbcd is not memorable
 
 ## Issues that have been worked around

@@ -183,17 +183,9 @@ for outputpath in $outputfiles; do
   mv $outputpath.0 $outputpath
 done
 
-## Create an entity file & copy necessary images
+## Create an (empty) entity file & copy necessary images
 
-# FIXME: Neither of these are safe for names with spaces in them, because they
-# don't iterate over lines, at least not per se :/
-entitiesneeded="$(sed -n -r 's/^need-entity:// p' $tmpdir/neededstuff | sort | uniq)"
-{
-  for entity in $entitiesneeded; do
-    # FIXME: Currently, there is just dummy content in the generated entities.
-    echo "<!ENTITY $(echo $entity | sed -r 's/^([^,]+).*$/\1/') \"FIXME, I am an entity. Original content at: $(echo $entity | sed -r 's/^[^,]+,(.*)$/\1/')\">"
-  done
-} > "$outputxmldir/entities.ent"
+touch "$outputxmldir/entities.ent"
 
 # For images, we do not yet generate file names that include the name of the
 # ditamap file. However, since images don't change with profiling/ditamap
