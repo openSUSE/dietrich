@@ -102,6 +102,18 @@ outputimagedir="$OUTPUTDIR/images/src"
 replace=$(eval echo "\$${inputbasename}_REPLACE")
 remove=$(eval echo "\$${inputbasename}_REMOVE")
 
+replacements="$(echo $replace | sed -r 's@( |^)[^= ]+=@ @g')"
+replacementnotfound=0
+for replacement in $replacements; do
+  if [[ ! -f "$basedir/$replacement" ]]; then
+    echo "(meh) Replacement file does not exist: $basedir/$replacement"
+    replacementnotfound=1
+  fi
+done
+if [[ $replacementnotfound == 1 ]]; then
+  exit
+fi
+
 ## Create temporary/output dirs
 tmpdir=$(mktemp -d -p '/tmp' -t 'db-convert-XXXXXXX')
 mkdir -p "$outputxmldir" 2> /dev/null
@@ -218,10 +230,7 @@ done
 ## Copy replaced files
 
 for replacedfile in $replacedfiles; do
-  replacedpath="$outputxmldir/$replacedfile"
-  if [[ ! -f "$replacedpath" ]]; then
-    cp "$basedir/$replacedfile" "$replacedpath"
-  fi
+  cp "$basedir/$replacedfile" "$outputxmldir/$replacedfile"
 done
 
 ## Create entity file
