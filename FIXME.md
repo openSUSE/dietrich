@@ -1,9 +1,9 @@
 ## Enhancements
 * support for DITA profiling attributes (?): audience platform product props otherprops rev
-* support for excluding/replacing sections (?)
 * given https://github.com/dita-ot/org.dita.docbook/commit/9cca1355 , can we
   convert the core conversion stuff back down to XSLT 1.0? If so, we'd be able
   to lose the saxon9 dependency and might be able to save some time
+* convert to [DocBook 5](http://docserv.nue.suse.com/project_management/archive/github_migration/html/db4_to_db5.html)
 
 ## Known issues
 

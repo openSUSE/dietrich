@@ -94,11 +94,6 @@
       <xsl:if test="contains($remove, concat(' ', normalize-space(@href), ' '))">1</xsl:if>
     </xsl:variable>
     <xsl:variable name="replacement">
-<!--      <xsl:message>@@@ora:<xsl:value-of select="$replace"/></xsl:message>-->
-<!--      <xsl:message>@@@ref:<xsl:value-of select="@href"/></xsl:message>-->
-<!--      <xsl:message>@@@fnd:<xsl:value-of select="contains($replace, concat(' ', normalize-space(@href), '='))"/></xsl:message>-->
-<!--      <xsl:message>@@@st1:<xsl:value-of select="substring-after($replace, concat(' ', normalize-space(@href), '='))"/></xsl:message>-->
-<!--      <xsl:message>@@@st2:<xsl:value-of select="substring-before(substring-after($replace, concat(' ', normalize-space(@href), '=')),' ')"/></xsl:message>-->
       <xsl:if test="contains($replace, concat(' ', normalize-space(@href), '='))">
         <xsl:value-of select="substring-before(substring-after($replace, concat(' ', normalize-space(@href), '=')),' ')"/>
       </xsl:if>
