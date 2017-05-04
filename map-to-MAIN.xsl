@@ -3,6 +3,8 @@
 
   <xsl:param name="prefix" select="''"/>
   <xsl:param name="entityfile" select="'entities.xml'"/>
+  <xsl:param name="replace" select="''"/>
+  <xsl:param name="remove" select="''"/>
 
   <xsl:template match="/">
     <!-- Move the xml-stylesheet PI before the DOCTYPE declaration. -->
@@ -88,32 +90,60 @@
        <xsl:with-param name="input" select="@href"/>
       </xsl:call-template>
     </xsl:variable>
-    <xsl:message>source-file:<xsl:value-of select="@href"/></xsl:message>
-    <xi:include href="{$file}" xmlns:xi="http://www.w3.org/2001/XInclude"/>
-    <xsl:call-template name="changeroot">
-      <xsl:with-param name="file" select="$file"/>
-    </xsl:call-template>
-    <xsl:apply-templates/>
-  </xsl:template>
-
-  <!-- XIncludes that need to be added to different files. -->
-  <xsl:template match="*[@href and ancestor::*[@href]]">
-    <xsl:variable name="file">
-      <xsl:call-template name="mangle-filename">
-       <xsl:with-param name="input" select="@href"/>
-      </xsl:call-template>
+    <xsl:variable name="removal">
+      <xsl:if test="contains($remove, concat(' ', normalize-space(@href), ' '))">1</xsl:if>
     </xsl:variable>
-    <xsl:variable name="parentfile">
-      <xsl:call-template name="mangle-filename">
-       <xsl:with-param name="input" select="ancestor::*[1]/@href"/>
-      </xsl:call-template>
+    <xsl:variable name="replacement">
+<!--      <xsl:message>@@@ora:<xsl:value-of select="$replace"/></xsl:message>-->
+<!--      <xsl:message>@@@ref:<xsl:value-of select="@href"/></xsl:message>-->
+<!--      <xsl:message>@@@fnd:<xsl:value-of select="contains($replace, concat(' ', normalize-space(@href), '='))"/></xsl:message>-->
+<!--      <xsl:message>@@@st1:<xsl:value-of select="substring-after($replace, concat(' ', normalize-space(@href), '='))"/></xsl:message>-->
+<!--      <xsl:message>@@@st2:<xsl:value-of select="substring-before(substring-after($replace, concat(' ', normalize-space(@href), '=')),' ')"/></xsl:message>-->
+      <xsl:if test="contains($replace, concat(' ', normalize-space(@href), '='))">
+        <xsl:value-of select="substring-before(substring-after($replace, concat(' ', normalize-space(@href), '=')),' ')"/>
+      </xsl:if>
     </xsl:variable>
-    <xsl:message>source-file:<xsl:value-of select="@href"/></xsl:message>
-    <xsl:message>append-to:<xsl:value-of select="$parentfile"/>,generate-include:<xsl:value-of select="$file"/></xsl:message>
-    <xsl:call-template name="changeroot">
-      <xsl:with-param name="file" select="$file"/>
-    </xsl:call-template>
-    <xsl:apply-templates/>
+    <xsl:choose>
+      <xsl:when test="$removal = 1">
+        <xsl:message>file-removal:<xsl:value-of select="@href"/></xsl:message>
+      </xsl:when>
+      <xsl:when test="not($replacement = '')">
+        <xsl:message>source-file-replaced:<xsl:value-of select="$replacement"/></xsl:message>
+        <xsl:choose>
+          <xsl:when test="ancestor::*[@href]">
+            <xsl:variable name="parentfile">
+              <xsl:call-template name="mangle-filename">
+               <xsl:with-param name="input" select="ancestor::*[1]/@href"/>
+              </xsl:call-template>
+            </xsl:variable>
+            <xsl:message>append-to:<xsl:value-of select="$parentfile"/>,generate-include:<xsl:value-of select="$replacement"/></xsl:message>
+          </xsl:when>
+          <xsl:otherwise>
+            <xi:include href="{$replacement}" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+          </xsl:otherwise>
+        </xsl:choose>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:message>source-file:<xsl:value-of select="@href"/></xsl:message>
+        <xsl:choose>
+          <xsl:when test="ancestor::*[@href]">
+            <xsl:variable name="parentfile">
+              <xsl:call-template name="mangle-filename">
+               <xsl:with-param name="input" select="ancestor::*[1]/@href"/>
+              </xsl:call-template>
+            </xsl:variable>
+            <xsl:message>append-to:<xsl:value-of select="$parentfile"/>,generate-include:<xsl:value-of select="$file"/></xsl:message>
+          </xsl:when>
+          <xsl:otherwise>
+            <xi:include href="{$file}" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+          </xsl:otherwise>
+        </xsl:choose>
+        <xsl:call-template name="changeroot">
+          <xsl:with-param name="file" select="$file"/>
+        </xsl:call-template>
+        <xsl:apply-templates/>
+      </xsl:otherwise>
+    </xsl:choose>
   </xsl:template>
 
   <xsl:template name="mangle-filename">

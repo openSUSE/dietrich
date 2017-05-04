@@ -21,8 +21,26 @@
 #         )
 #     + ENTITYFILE: File name (not path!) of an external that will be included
 #         with all XML files. To reuse an existing file, it has to exist below
-#         $OUTPUTDIR/xml, if it does not, an empty file will be created.
+#         [OUTPUTDIR]/xml, if it does not, an empty file will be created.
 #         (default: "entities.xml")
+#     + [DITAMAP]_REPLACE: Space-separated list of files that will be replaced
+#         by a different DocBook file or removed removed. Newly included files
+#         must either already be placed in [OUTPUTDIR]/xml or be available in
+#         the same directory as [DITAMAP].
+#         NOTE: Newly included files will be used as-is, without conversion,
+#         addition of XIncludes or extra entities. Images referenced in newly
+#         included files will not be copied.
+#         (default: [none], syntax:
+#           "relative/path/old.xml=new.xml relative/path/old2.xml=new2.xml ..."
+#         )
+#     + [DITAMAP]_REMOVE: Space-separated list of files that will be removed.
+#         NOTE: This option also removes files that are included within the
+#         reference of the removed file.
+#         NOTE: If a file is supposed to be both removed and replaced, it will
+#         always be removed.
+#         (default: [none], syntax:
+#           "relative/path/old.xml relative/path/old2.xml ..."
+#         )
 #
 # Package Dependencies on openSUSE:
 #   daps dita saxon9-scripts imagemagick
@@ -64,7 +82,7 @@ ENTITYFILE="entities.xml"
 ## Source a config file, if any
 # This is an evil security issue but let's ignore that for the moment.
 if [[ -s "$basedir/conversion.conf" ]]; then
-  options="$(sed -rn '/#!/{n; p; :loop n; p; /^[ \t]*$/q; b loop}' $0 | sed -r -n 's/^# +\+ ([^:]+):.*/\1/ p' | tr '\n' '|' | sed -r 's/\|$//')"
+  options="$(sed -rn '/#!/{n; p; :loop n; p; /^[ \t]*$/q; b loop}' $0 | sed -r -n 's/^# +\+ ([^:]+):.*/\1/ p' | tr '\n' '|' | sed -r -e "s/\[DITAMAP\]/$inputbasename/g" -e 's/\|$//')"
   if [[ $verbose == 1 ]]; then
     echo "Available options: $(echo $options | sed -r 's/\|/ /g')"
     echo -n "Options recognized in conversion.conf: "
@@ -80,6 +98,10 @@ fi
 outputxmldir="$OUTPUTDIR/xml"
 outputimagedir="$OUTPUTDIR/images/src"
 
+# I know. Sorry.
+replace=$(eval echo "\$${inputbasename}_REPLACE")
+remove=$(eval echo "\$${inputbasename}_REMOVE")
+
 ## Create temporary/output dirs
 tmpdir=$(mktemp -d -p '/tmp' -t 'db-convert-XXXXXXX')
 mkdir -p "$outputxmldir" 2> /dev/null
@@ -91,11 +113,14 @@ mainfile="$outputxmldir/MAIN.${inputbasename}.xml"
 xsltproc --novalid \
   --stringparam "prefix" "$inputbasename" \
   --stringparam "entityfile" "$ENTITYFILE" \
+  --stringparam "replace" " $replace " \
+  --stringparam "remove" " $remove " \
   "$mydir/map-to-MAIN.xsl" \
   "$inputmap" > "$mainfile" 2> "$tmpdir/includes"
 
 ## Find the source files in the ditamap
 sourcefiles="$(sed -n -r 's/^source-file:// p' $tmpdir/includes)"
+replacedfiles="$(sed -n -r 's/^source-file-replaced:// p' $tmpdir/includes)"
 
 # This should prevent SNAFUs when the user is not in the dir with the ditamap
 # already...
@@ -190,9 +215,24 @@ for outputpath in $outputfiles; do
   mv $outputpath.0 $outputpath
 done
 
-## Create an (empty) entity file & copy necessary images
+## Copy replaced files
 
-touch "$outputxmldir/$ENTITYFILE"
+for replacedfile in $replacedfiles; do
+  replacedpath="$outputxmldir/$replacedfile"
+  if [[ ! -f "$replacedpath" ]]; then
+    cp "$basedir/$replacedfile" "$replacedpath"
+  fi
+done
+
+## Create entity file
+
+if [[ ! -f "$outputxmldir/$ENTITYFILE" ]] && [[ -f "$basedir/$ENTITYFILE" ]]; then
+  cp "$basedir/$ENTITYFILE" "$outputxmldir/$ENTITYFILE"
+else
+  touch "$outputxmldir/$ENTITYFILE"
+fi
+
+## Copy necessary images
 
 # For images, we do not yet generate file names that include the name of the
 # ditamap file. However, since images don't change with profiling/ditamap
