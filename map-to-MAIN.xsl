@@ -2,6 +2,7 @@
   <xsl:output method="xml"/>
 
   <xsl:param name="prefix" select="''"/>
+  <xsl:param name="entityfile" select="'entities.xml'"/>
 
   <xsl:template match="/">
     <!-- Move the xml-stylesheet PI before the DOCTYPE declaration. -->
@@ -10,7 +11,9 @@
     <!-- <xsl:value-of select="local-name(/*[1])"/>-->
     <xsl:text>book</xsl:text>
     <xsl:text disable-output-escaping="yes"> PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd"</xsl:text>
-    <xsl:text disable-output-escaping="yes"> [ &lt;!ENTITY % entities SYSTEM "entities.ent"&gt; %entities; ]&gt;</xsl:text>
+    <xsl:text disable-output-escaping="yes"> [ &lt;!ENTITY % entities SYSTEM "</xsl:text>
+    <xsl:value-of select="$entityfile"/>
+    <xsl:text disable-output-escaping="yes">"&gt; %entities; ]&gt;</xsl:text>
     <xsl:apply-templates select="@*|node()"/>
   </xsl:template>
 

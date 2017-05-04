@@ -19,6 +19,10 @@
 #           "fujitsu" - convert emphases starting with "PENDING:" to <remark/>s,
 #              remove emphases from link text
 #         )
+#     + ENTITYFILE: File name (not path!) of an external that will be included
+#         with all XML files. To reuse an existing file, it has to exist below
+#         $OUTPUTDIR/xml, if it does not, an empty file will be created.
+#         (default: "entities.xml")
 #
 # Package Dependencies on openSUSE:
 #   daps dita saxon9-scripts imagemagick
@@ -55,6 +59,7 @@ STYLEROOT=""
 CLEANTEMP=1
 CLEANID=0
 TWEAK=""
+ENTITYFILE="entities.xml"
 
 ## Source a config file, if any
 # This is an evil security issue but let's ignore that for the moment.
@@ -85,6 +90,7 @@ mainfile="$outputxmldir/MAIN.${inputbasename}.xml"
 # --novalid is necessary for the Fujitsu stuff since we seem to lack the right DTD
 xsltproc --novalid \
   --stringparam "prefix" "$inputbasename" \
+  --stringparam "entityfile" "$ENTITYFILE" \
   "$mydir/map-to-MAIN.xsl" \
   "$inputmap" > "$mainfile" 2> "$tmpdir/includes"
 
@@ -178,6 +184,7 @@ for outputpath in $outputfiles; do
     --stringparam "includes" "$includes" \
     --stringparam "relativefilepath" "$(dirname $sourcefile)" \
     --stringparam "tweaks" " $TWEAK " \
+    --stringparam "entityfile" "$ENTITYFILE" \
     "$mydir/clean-ids.xsl" \
     "$outputpath" > "$outputpath.0" 2>> "$tmpdir/neededstuff"
   mv $outputpath.0 $outputpath
@@ -185,7 +192,7 @@ done
 
 ## Create an (empty) entity file & copy necessary images
 
-touch "$outputxmldir/entities.ent"
+touch "$outputxmldir/$ENTITYFILE"
 
 # For images, we do not yet generate file names that include the name of the
 # ditamap file. However, since images don't change with profiling/ditamap

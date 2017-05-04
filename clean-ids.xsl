@@ -8,6 +8,7 @@
   <xsl:param name="includes" select="''"/>
   <xsl:param name="relativefilepath" select="''"/>
   <xsl:param name="tweaks" select="''"/>
+  <xsl:param name="entityfile" select="'entities.xml'"/>
 
   <xsl:variable name="actual-root">
     <xsl:choose>
@@ -26,7 +27,9 @@
     <xsl:text disable-output-escaping="yes">&lt;!DOCTYPE </xsl:text>
     <xsl:value-of select="$actual-root"/>
     <xsl:text disable-output-escaping="yes"> PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd"</xsl:text>
-    <xsl:text disable-output-escaping="yes"> [ &lt;!ENTITY % entities SYSTEM "entities.ent"&gt; %entities; ]&gt;</xsl:text>
+    <xsl:text disable-output-escaping="yes"> [ &lt;!ENTITY % entities SYSTEM "</xsl:text>
+    <xsl:value-of select="$entityfile"/>
+    <xsl:text disable-output-escaping="yes">"&gt; %entities; ]&gt;</xsl:text>
     <xsl:apply-templates select="@*|node()"/>
   </xsl:template>
 
