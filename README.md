@@ -15,6 +15,7 @@ Packages to install on openSUSE:
 * `daps`
 * `dita`
 * `saxon9-scripts`
+* `imagemagick`
 
 
 ### Usage
