@@ -2,8 +2,8 @@
 
 Occasionally even works as intended. Originally written to import Fujitsu CMM documentation. 
 
-Most content stolen from https://github.com/dita-ot/org.dita.docbook (without
-going to the trouble of importing Git commits or giving proper credit).
+The core DITA/DocBook transformation stylesheets come from
+https://github.com/dita-ot/org.dita.docbook
 
 Licensed as Apache 2.0.
 
