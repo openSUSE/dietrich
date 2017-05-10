@@ -24,9 +24,9 @@
 #         [OUTPUTDIR]/xml, if it does not, an empty file will be created.
 #         (default: "entities.xml")
 #     + [DITAMAP]_REPLACE: Space-separated list of files that will be replaced
-#         by a different DocBook file or removed removed. Newly included files
-#         must either already be placed in [OUTPUTDIR]/xml or be available in
-#         the same directory as [DITAMAP].
+#         by a different DocBook file or removed. Newly included files must
+#         either already be placed in [OUTPUTDIR]/xml or be available in the
+#         same directory as [DITAMAP].
 #         NOTE: Newly included files will be used as-is, without conversion,
 #         addition of XIncludes or extra entities. Images referenced in newly
 #         included files will not be copied.
