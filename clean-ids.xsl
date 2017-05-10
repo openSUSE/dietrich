@@ -71,7 +71,7 @@
 
   <xsl:template
     match="@remap|@*[. = '']|@moreinfo[. = 'none']|@inheritnum[. = 'ignore']|
-           @float|@continuation[. ='restarts']|emphasis/@role[. = 'italic']"/>
+           @float|@continuation[. ='restarts']|emphasis/@role[. = 'italic']|@frame"/>
 
   <!-- We get a list of linkends, all IDs that are not part of that list are
   removed here. If we don't get anything (not even a space), we don't do

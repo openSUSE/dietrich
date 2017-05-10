@@ -116,7 +116,7 @@ fi
 
 ## Create temporary/output dirs
 tmpdir=$(mktemp -d -p '/tmp' -t 'db-convert-XXXXXXX')
-mkdir -p "$outputxmldir" 2> /dev/null
+mkdir -p "$outputxmldir"
 
 ## From the ditamap, create a MAIN file.
 
@@ -210,6 +210,20 @@ if [[ $CLEANID == 1 ]]; then
   # Spaces at the beginning/end are intentional & necessary for XSLT later.
   linkends=" $(xmllint --xpath '//@linkend' $outputfiles 2> /dev/null | tr ' ' '\n' | sed -r -e 's/^linkend=\"//' -e 's/\"$//' | sort | uniq | tr '\n' ' ') "
 fi
+
+for outputpath in $outputfiles; do
+  outputfile="$(basename $outputpath)"
+  problematicblocks="self::address|self::bibliolist|self::blockquote|self::bridgehead|self::calloutlist|self::caution|self::classsynopsis|self::cmdsynopsis|self::constraintdef|self::constructorsynopsis|self::destructorsynopsis|self::epigraph|self::equation|self::example|self::fieldsynopsis|self::figure|self::funcsynopsis|self::glosslist|self::important|self::informalexample|self::informalfigure|self::informaltable|self::itemizedlist|self::literallayout|self::mediaobject|self::methodsynopsis|self::msgset|self::note|self::orderedlist|self::procedure|self::procedure|self::productionset|self::programlisting|self::programlistingco|self::qandaset|self::revhistory|self::screen|self::screenco|self::screenshot|self::segmentedlist|self::sidebar|self::simplelist|self::synopsis|self::table|self::task|self::tip|self::variablelist|self::warning"
+
+  # Oh my. Is there anything where I don't apply the rinse/repeat strategy?
+  # This is getting old fast. FIXME
+  while [[ $(xmllint --xpath "//*[(${problematicblocks}) and parent::para]" "$outputpath" 2> /dev/null) ]]; do
+    xsltproc \
+      "$mydir/clean-blocks.xsl" \
+      "$outputpath" > "$outputpath.0"
+    mv $outputpath.0 $outputpath
+  done
+done
 
 for outputpath in $outputfiles; do
   outputfile="$(basename $outputpath)"
