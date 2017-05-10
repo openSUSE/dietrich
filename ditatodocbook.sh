@@ -201,15 +201,6 @@ dcfile="$OUTPUTDIR/DC-$inputbasename"
   fi
 } > "$dcfile"
 
-## Collect linkends, clean up all the IDs that are not used, also clean up
-## filerefs in imageobjects and replace ex-conref'd contents with entities.
-
-# By default, let's not clean up IDs...
-linkends=""
-if [[ $CLEANID == 1 ]]; then
-  # Spaces at the beginning/end are intentional & necessary for XSLT later.
-  linkends=" $(xmllint --xpath '//@linkend' $outputfiles 2> /dev/null | tr ' ' '\n' | sed -r -e 's/^linkend=\"//' -e 's/\"$//' | sort | uniq | tr '\n' ' ') "
-fi
 
 for outputpath in $outputfiles; do
   outputfile="$(basename $outputpath)"
@@ -224,7 +215,17 @@ for outputpath in $outputfiles; do
     mv $outputpath.0 $outputpath
   done
 done
+exit
 
+## Collect linkends, clean up all the IDs that are not used, also clean up
+## filerefs in imageobjects and replace ex-conref'd contents with entities.
+
+# By default, let's not clean up IDs...
+linkends=""
+if [[ $CLEANID == 1 ]]; then
+  # Spaces at the beginning/end are intentional & necessary for XSLT later.
+  linkends=" $(xmllint --xpath '//@linkend' $outputfiles 2> /dev/null | tr ' ' '\n' | sed -r -e 's/^linkend=\"//' -e 's/\"$//' | sort | uniq | tr '\n' ' ') "
+fi
 for outputpath in $outputfiles; do
   outputfile="$(basename $outputpath)"
   root=$(grep -m1 "^file:$outputfile,root:" $tmpdir/includes | sed -r 's_^.+,root:(.+)$_\1_')
