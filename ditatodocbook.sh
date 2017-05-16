@@ -23,6 +23,10 @@
 #         with all XML files. To reuse an existing file, it has to exist below
 #         [OUTPUTDIR]/xml, if it does not, an empty file will be created.
 #         (default: "entities.xml")
+#     + [DITAMAP]_DC: Name of output DC file.
+#         (default: DC-[DITAMAP's_NAME])
+#     + [DITAMAP]_MAIN: Name of output main file.
+#         (default: MAIN.[DITAMAP's_NAME].xml)
 #     + [DITAMAP]_REPLACE: Space-separated list of files that will be replaced
 #         by a different DocBook file or removed. Newly included files must
 #         either already be placed in [OUTPUTDIR]/xml or be available in the
@@ -41,6 +45,7 @@
 #         (default: [none], syntax:
 #           "relative/path/old.xml relative/path/old2.xml ..."
 #         )
+
 #
 # Package Dependencies on openSUSE:
 #   daps dita saxon9-scripts imagemagick
@@ -98,7 +103,16 @@ fi
 outputxmldir="$OUTPUTDIR/xml"
 outputimagedir="$OUTPUTDIR/images/src"
 
-# I know. Sorry.
+# Eval depending on the content of a sourced script. I know. Sorry.
+dcname="DC-$inputbasename"
+mainname="MAIN.$inputbasename.xml"
+if [[ $(eval echo "\$${inputbasename}_DC") ]]; then
+  dcname=$(eval echo "\$${inputbasename}_DC")
+fi
+if [[ $(eval echo "\$${inputbasename}_MAIN") ]]; then
+  mainname=$(eval echo "\$${inputbasename}_MAIN")
+fi
+
 replace=$(eval echo "\$${inputbasename}_REPLACE")
 remove=$(eval echo "\$${inputbasename}_REMOVE")
 
@@ -120,7 +134,7 @@ mkdir -p "$outputxmldir"
 
 ## From the ditamap, create a MAIN file.
 
-mainfile="$outputxmldir/MAIN.${inputbasename}.xml"
+mainfile="$outputxmldir/$mainname"
 # --novalid is necessary for the Fujitsu stuff since we seem to lack the right DTD
 xsltproc --novalid \
   --stringparam "prefix" "$inputbasename" \
@@ -193,9 +207,9 @@ done
 
 ## Create a very basic DC file
 
-dcfile="$OUTPUTDIR/DC-$inputbasename"
+dcfile="$OUTPUTDIR/$dcname"
 {
-  echo "MAIN=$(basename $mainfile)"
+  echo "MAIN=$mainname"
   if [[ $STYLEROOT != '' ]]; then
     echo "STYLEROOT=$STYLEROOT"
   fi
