@@ -1,6 +1,6 @@
 #! /bin/bash
 # Usage:
-#   $0 [DITAMAP] [-v]
+#   $0 [-v] [DITAMAP]
 #
 #   -v      Use verbose mode
 #
@@ -55,6 +55,12 @@
 me="$(test -L $(realpath $0) && readlink $(realpath $0) || echo $(realpath $0))"
 mydir="$(dirname $me)"
 
+verbose=0
+if [[ $1 == '-v' ]]; then
+  verbose=1
+  shift
+fi
+
 if [[ $1 == '--help' ]] || [[ $1 == '-h' ]] || [[ ! $1 ]]; then
   sed -rn '/#!/{n; p; :loop n; p; /^[ \t]*$/q; b loop}' $0 | sed -r -e 's/^# ?//' -e "s/\\\$0/$(basename $0)/"
   exit
@@ -71,10 +77,6 @@ fi
 basedir="$(realpath $(dirname $inputmap))"
 inputbasename="$(basename $1 | sed -r 's/.ditamap$//')"
 
-verbose=0
-if [[ $2 == '-v' ]]; then
-  verbose=1
-fi
 
 ## Configurable options
 OUTPUTDIR="$basedir/converted/$inputbasename"
