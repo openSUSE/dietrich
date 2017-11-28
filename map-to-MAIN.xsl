@@ -51,7 +51,7 @@
   <xsl:template match="bookmeta|bookrights|bookid|series|component|brand|prodname|vrm"/>
 
   <!-- Any other types of maps necessary? -->
-  <xsl:template match="bookmap">
+  <xsl:template match="bookmap|map">
     <book>
       <xsl:apply-templates select="@*|node()"/>
     </book>
