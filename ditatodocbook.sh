@@ -14,15 +14,15 @@
 #     + STYLEROOT: Style root to write into the DC file. (default: [none])
 #     + CLEANTEMP: Delete temporary directory after conversion. (default: 1)
 #     + CLEANID: Remove IDs that are not used as linkends. (default: 1)
-#     + TWEAK: Space separated list of vendor tweaks to apply.
+#     + TWEAK: Space-separated list of vendor tweaks to apply.
 #         (default: [none], available:
 #           "fujitsu" - convert emphases starting with "PENDING:" to <remark/>s,
 #              remove emphases from link text
 #         )
-#     + ENTITYFILE: File name (not path!) of an external that will be included
-#         with all XML files. To reuse an existing file, it has to exist below
-#         [OUTPUTDIR]/xml, if it does not, an empty file will be created.
-#         (default: "entities.xml")
+#     + ENTITYFILE: File name (not path!) of an external file that will be
+#         included with all XML files. To reuse an existing file, it has to
+#         exist below [OUTPUTDIR]/xml, if it does not, an empty file will be
+#         created. (default: "entities.xml")
 #     + [DITAMAP]_DC: Name of output DC file.
 #         (default: DC-[DITAMAP's_NAME])
 #     + [DITAMAP]_MAIN: Name of output main file.
@@ -48,7 +48,7 @@
 
 #
 # Package Dependencies on openSUSE:
-#   daps dita saxon9-scripts imagemagick
+#   daps dita saxon9-scripts ImageMagick
 
 
 ## This script
