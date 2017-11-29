@@ -51,6 +51,12 @@
 #   daps dita saxon9-scripts ImageMagick
 
 
+function die() {
+# $1 = message
+  echo $1
+  exit
+}
+
 ## This script
 me="$(test -L $(realpath $0) && readlink $(realpath $0) || echo $(realpath $0))"
 mydir="$(dirname $me)"
@@ -70,8 +76,7 @@ fi
 inputmap="$1"
 
 if [[ ! -f "$inputmap" ]]; then
-  echo "(meh) The file $inputmap does not seem to exist."
-  exit
+  die "(meh) The file $inputmap does not seem to exist."
 fi
 
 basedir="$(realpath $(dirname $inputmap))"
@@ -85,6 +90,7 @@ CLEANTEMP=1
 CLEANID=0
 TWEAK=""
 ENTITYFILE="entities.xml"
+MAP2MAIN_XSLT="$mydir/map-to-MAIN.xsl"
 
 ## Source a config file, if any
 # This is an evil security issue but let's ignore that for the moment.
@@ -138,13 +144,20 @@ mkdir -p "$outputxmldir"
 
 mainfile="$outputxmldir/$mainname"
 # --novalid is necessary for the Fujitsu stuff since we seem to lack the right DTD
+# FIXME:
+#   --stringparam "remove" " $remove " \
 xsltproc --novalid \
+  --output "$mainfile" \
   --stringparam "prefix" "$inputbasename" \
   --stringparam "entityfile" "$ENTITYFILE" \
   --stringparam "replace" " $replace " \
-  --stringparam "remove" " $remove " \
-  "$mydir/map-to-MAIN.xsl" \
-  "$inputmap" > "$mainfile" 2> "$tmpdir/includes"
+  --stringparam includes.filename "$tmpdir/includes" \
+   ${MAP2MAIN_XSLT} \
+  "$inputmap"
+  # 2> "$tmpdir/includes"
+
+# Test, if the includes file is there, otherwise abort
+[[ -e "$tmpdir/includes" ]] || die "ERROR: File $tmpdir/includes not found"
 
 ## Find the source files in the ditamap
 sourcefiles="$(sed -n -r 's/^source-file:// p' $tmpdir/includes)"
