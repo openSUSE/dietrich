@@ -26,10 +26,9 @@
     <xsl:apply-templates select="node()[normalize-space()][1][self::processing-instruction()]"/>
     <xsl:text disable-output-escaping="yes">&lt;!DOCTYPE </xsl:text>
     <xsl:value-of select="$actual-root"/>
-    <xsl:text disable-output-escaping="yes"> PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd"</xsl:text>
-    <xsl:text disable-output-escaping="yes"> [ &lt;!ENTITY % entities SYSTEM "</xsl:text>
+    <xsl:text disable-output-escaping="yes"> [&#10; &lt;!ENTITY % entities SYSTEM "</xsl:text>
     <xsl:value-of select="$entityfile"/>
-    <xsl:text disable-output-escaping="yes">"&gt; %entities; ]&gt;</xsl:text>
+    <xsl:text disable-output-escaping="yes">"&gt; %entities;&#10;]&gt;&#10;</xsl:text>
     <xsl:apply-templates select="@*|node()"/>
   </xsl:template>
 

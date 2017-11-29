@@ -1,10 +1,17 @@
 <?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE xsl:stylesheet
+[
+  <!ENTITY dbns "http://docbook.org/ns/docbook">
+]>
+
 <!-- This file is part of the DITA Open Toolkit project hosted on 
   Sourceforge.net. See the accompanying license.txt file for 
   applicable licenses.-->
 <!-- (c) Copyright IBM Corp. 2004, 2005 All Rights Reserved. -->
 
-<xsl:stylesheet version="2.0" 
+<xsl:stylesheet version="2.0"
+                xmlns="&dbns;"
+                xmlns:xlink="http://www.w3.org/1999/xlink"
                 xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 
 
@@ -15,7 +22,7 @@
 <xsl:template match="*[contains(@class,' topic/topic ')]">
   <xsl:param name="childrefs"/>
   <xsl:param name="element" select="'section'"/>
-  <xsl:element name="{$element}">
+  <xsl:element name="{$element}" namespace="&dbns;">
     <xsl:call-template name="setStandardAttr">
       <xsl:with-param name="IDPrefix" select="'tpc'"/>
     </xsl:call-template>
@@ -32,7 +39,7 @@
 <xsl:template match="*[contains(@class,' topic/title ')]">
   <xsl:param name="element"  select="'title'"/>
   <xsl:param name="IDPrefix" select="'ttl'"/>
-  <xsl:element name="{$element}">
+  <xsl:element name="{$element}"  namespace="&dbns;">
     <xsl:call-template name="setStandardAttr">
       <xsl:with-param name="IDPrefix" select="$IDPrefix"/>
     </xsl:call-template>
@@ -48,7 +55,7 @@
 <xsl:template match="*[contains(@class,' topic/navtitle ')]">
   <xsl:param name="element"  select="'titleabbrev'"/>
   <xsl:param name="IDPrefix" select="'ttlabbrv'"/>
-  <xsl:element name="{$element}">
+  <xsl:element name="{$element}" namespace="&dbns;">
     <xsl:call-template name="setStandardAttr">
       <xsl:with-param name="IDPrefix" select="$IDPrefix"/>
     </xsl:call-template>
@@ -59,7 +66,7 @@
 <xsl:template match="*[contains(@class,' topic/searchtitle ')]">
   <xsl:param name="element"  select="'subtitle'"/>
   <xsl:param name="IDPrefix" select="'sbttl'"/>
-  <xsl:element name="{$element}">
+  <xsl:element name="{$element}" namespace="&dbns;">
     <xsl:call-template name="setStandardAttr">
       <xsl:with-param name="IDPrefix" select="$IDPrefix"/>
     </xsl:call-template>
@@ -115,13 +122,13 @@
   <xsl:if test="$shortDescNode or $prologNodes">
     <xsl:variable name="elementName">
       <xsl:choose>
-      <xsl:when test="$contextType='article'">artheader</xsl:when>
-      <xsl:when test="$contextType='appendix'">docinfo</xsl:when>
-      <xsl:when test="$contextType='book'">bookinfo</xsl:when>
-      <xsl:when test="$contextType='chapter'">chapterinfo</xsl:when>
-      <xsl:when test="$contextType='glossary'">docinfo</xsl:when>
-      <xsl:when test="$contextType='part'">docinfo</xsl:when>
-      <xsl:when test="$contextType='section'">sectioninfo</xsl:when>
+      <xsl:when test="$contextType='article'">info</xsl:when>
+      <xsl:when test="$contextType='appendix'">info</xsl:when>
+      <xsl:when test="$contextType='book'">info</xsl:when>
+      <xsl:when test="$contextType='chapter'">info</xsl:when>
+      <xsl:when test="$contextType='glossary'">info</xsl:when>
+      <xsl:when test="$contextType='part'">info</xsl:when>
+      <xsl:when test="$contextType='section'">info</xsl:when>
       <xsl:otherwise>
         <xsl:message>
           <xsl:text>Unknown context type </xsl:text>
@@ -415,9 +422,9 @@
 </xsl:template>
 
 <xsl:template match="*" mode="make-ulink-from-link">
-  <ulink url="{@href}">
+  <link xlink:href="{@href}">
     <xsl:apply-templates select="*[contains(@class,' topic/linktext ')]"/>
-  </ulink>
+  </link>
 </xsl:template>
 
 <xsl:template match="*" mode="make-xref-from-link">
@@ -838,12 +845,12 @@ DATA-TYPE PHRASES: date time currency char num bin oct dec hex ???
 	      substring(@href, string-length(@href) - 5) != '.dita' and
 	      substring(@href, string-length(@href) - 4) != '.xml'))]">-->
 <xsl:template match="*" mode="make-ulink-from-xref">
-  <ulink url="{@href}" type="{@type}">
+  <link xlink:href="{@href}"><!-- type="{@type}" -->
     <xsl:call-template name="setStandardAttr">
       <xsl:with-param name="IDPrefix" select="'link'"/>
     </xsl:call-template>
     <xsl:apply-templates/>
-  </ulink>
+  </link>
 </xsl:template>
 
 <!--<xsl:template match="*[contains(@class,' topic/xref ') and
@@ -1365,7 +1372,7 @@ DATA-TYPE PHRASES: date time currency char num bin oct dec hex ???
 <xsl:template name="copyAs">
   <xsl:param name="elementName" select="local-name(.)"/>
   <xsl:param name="hasRemap"    select="true()"/>
-  <xsl:element name="{$elementName}">
+  <xsl:element name="{$elementName}" namespace="&dbns;">
     <xsl:for-each select="@*">
       <xsl:choose>
       <xsl:when test="local-name(.) = 'spec'">
@@ -1547,7 +1554,7 @@ DATA-TYPE PHRASES: date time currency char num bin oct dec hex ???
         <xsl:variable name="element">
           <xsl:text>sidebar</xsl:text>
         </xsl:variable>
-        <xsl:element name="{$element}">
+        <xsl:element name="{$element}" namespace="&dbns;">
           <xsl:call-template name="setStandardAttr">
             <xsl:with-param name="IDPrefix" select="$IDPrefix"/>
           </xsl:call-template>
@@ -1664,7 +1671,7 @@ DATA-TYPE PHRASES: date time currency char num bin oct dec hex ???
     </xsl:element>
   </xsl:when>
   <xsl:otherwise>
-    <xsl:element name="{$elemUntitled}">
+    <xsl:element name="{$elemUntitled}" namespace="&dbns;">
       <xsl:call-template name="setStandardAttr">
         <xsl:with-param name="IDPrefix" select="$IDPrefix"/>
       </xsl:call-template>
@@ -1683,7 +1690,7 @@ DATA-TYPE PHRASES: date time currency char num bin oct dec hex ???
   <xsl:param name="IDPrefix"/>
   <xsl:choose>
   <xsl:when test="$titleNode or @title">
-    <xsl:element name="{$wrapElem}">
+    <xsl:element name="{$wrapElem}" namespace="&dbns;">
       <xsl:call-template name="setStandardAttr">
         <xsl:with-param name="IDPrefix" select="$IDPrefix"/>
       </xsl:call-template>

@@ -20,9 +20,7 @@
     method="xml"
     indent="yes"
     omit-xml-declaration="no"
-    standalone="no"
-    doctype-public="-//OASIS//DTD DocBook XML V4.2//EN"
-    doctype-system="http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd"/>
+    standalone="no"/>
 
 
 <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
