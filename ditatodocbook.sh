@@ -79,7 +79,7 @@ inputbasename="$(basename $1 | sed -r 's/.ditamap$//')"
 
 
 ## Configurable options
-OUTPUTDIR="$basedir/converted/$inputbasename"
+OUTPUTDIR="converted/$inputbasename"
 STYLEROOT=""
 CLEANTEMP=1
 CLEANID=0
@@ -101,9 +101,16 @@ else
   echo "Did not find conversion.conf: Using default settings."
 fi
 
+OUTPUTDIR=$(echo "$OUTPUTDIR" | sed -r -e 's_^file:/+_/_' -e 's_/$__')
+
+outputdirabs="$basedir/$OUTPUTDIR"
+if [[ $OUTPUTDIR = /* ]]; then
+  outputdirabs="$OUTPUTDIR"
+fi
+
 ## Output (fix)
-outputxmldir="$OUTPUTDIR/xml"
-outputimagedir="$OUTPUTDIR/images/src"
+outputxmldir="$outputdirabs/xml"
+outputimagedir="$outputdirabs/images/src"
 
 # Eval depending on the content of a sourced script. I know. Sorry.
 dcname="DC-$inputbasename"
@@ -149,10 +156,6 @@ xsltproc --novalid \
 ## Find the source files in the ditamap
 sourcefiles="$(sed -n -r 's/^source-file:// p' $tmpdir/includes)"
 replacedfiles="$(sed -n -r 's/^source-file-replaced:// p' $tmpdir/includes)"
-
-# This should prevent SNAFUs when the user is not in the dir with the ditamap
-# already...
-cd "$basedir"
 
 # Include conrefs
 
@@ -209,7 +212,7 @@ done
 
 ## Create a very basic DC file
 
-dcfile="$OUTPUTDIR/$dcname"
+dcfile="$outputdirabs/$dcname"
 {
   echo "MAIN=$mainname"
   if [[ $STYLEROOT != '' ]]; then
@@ -299,4 +302,4 @@ if [[ ! $CLEANTEMP == 0 ]]; then
 else
   echo "Temporary directory: $tmpdir"
 fi
-echo "Output directory:    $OUTPUTDIR"
+echo "Output directory:    $outputdirabs"
