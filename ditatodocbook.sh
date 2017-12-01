@@ -141,6 +141,13 @@ fi
 tmpdir=$(mktemp -d -p '/tmp' -t 'db-convert-XXXXXXX')
 mkdir -p "$outputxmldir"
 
+echo ""
+if [[ ! $CLEANTEMP == 0 ]]; then
+  rm -r $tmpdir
+else
+  echo "Temporary directory: $tmpdir"
+fi
+
 ## From the ditamap, create a MAIN file.
 
 mainfile="$outputxmldir/$mainname"
@@ -297,9 +304,4 @@ daps -d "$dcfile" xmlformat > /dev/null
 daps -d "$dcfile" optipng > /dev/null
 
 echo ""
-if [[ ! $CLEANTEMP == 0 ]]; then
-  rm -r $tmpdir
-else
-  echo "Temporary directory: $tmpdir"
-fi
 echo "Output directory:    $outputdirabs"
