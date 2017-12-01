@@ -158,7 +158,14 @@
           <xsl:value-of select="local-name($node)"/>
         </xsl:when>
         <xsl:when test="local-name($node) = 'topicref'">
-          <xsl:text>section</xsl:text>
+          <xsl:choose>
+            <xsl:when test="not(ancestor::*[@href])">
+              <xsl:text>chapter</xsl:text>
+            </xsl:when>
+            <xsl:otherwise>
+              <xsl:text>section</xsl:text>
+            </xsl:otherwise>
+          </xsl:choose>
         </xsl:when>
         <xsl:otherwise>
           <xsl:message>WARNING: Unhandled element <xsl:value-of select="local-name(.)"/> (with @href), replaced with section.</xsl:message>
