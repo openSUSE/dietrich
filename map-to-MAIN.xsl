@@ -1,4 +1,12 @@
-<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
+<!DOCTYPE xsl:stylesheet
+[
+  <!ENTITY dbns "http://docbook.org/ns/docbook">
+]>
+
+<xsl:stylesheet version="1.0"
+ xmlns="&dbns;"
+ xmlns:xi="http://www.w3.org/2001/XInclude"
+ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:output method="xml"/>
 
   <xsl:param name="prefix" select="''"/>
@@ -7,15 +15,15 @@
   <xsl:param name="remove" select="''"/>
 
   <xsl:template match="/">
-    <!-- Move the xml-stylesheet PI before the DOCTYPE declaration. -->
-    <xsl:apply-templates select="node()[normalize-space()][1][self::processing-instruction()]"/>
-    <xsl:text disable-output-escaping="yes">&lt;!DOCTYPE </xsl:text>
+    <xsl:processing-instruction name="xsl-stylesheet"> href="urn:x-suse:xslt:profiling:docbook51-profile.xsl"
+                 type="text/xml"
+                 title="Profiling step"</xsl:processing-instruction>
+    <xsl:text disable-output-escaping="yes">&#10;&lt;!DOCTYPE </xsl:text>
     <!-- <xsl:value-of select="local-name(/*[1])"/>-->
     <xsl:text>book</xsl:text>
-    <xsl:text disable-output-escaping="yes"> PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd"</xsl:text>
-    <xsl:text disable-output-escaping="yes"> [ &lt;!ENTITY % entities SYSTEM "</xsl:text>
+    <xsl:text disable-output-escaping="yes"> [&#10; &lt;!ENTITY % entities SYSTEM "</xsl:text>
     <xsl:value-of select="$entityfile"/>
-    <xsl:text disable-output-escaping="yes">"&gt; %entities; ]&gt;</xsl:text>
+    <xsl:text disable-output-escaping="yes">"&gt; %entities;&#10;]&gt;&#10;</xsl:text>
     <xsl:apply-templates select="@*|node()"/>
   </xsl:template>
 
@@ -36,9 +44,9 @@
 
   <!-- Keep the element as is. -->
   <xsl:template match="title">
-    <xsl:element name="{local-name(.)}">
+    <title>
       <xsl:apply-templates/>
-    </xsl:element>
+    </title>
   </xsl:template>
 
   <!-- Step over the element. -->
@@ -58,13 +66,13 @@
   </xsl:template>
 
   <xsl:template match="@*[local-name(.)='lang']">
-    <xsl:attribute name="lang"><xsl:value-of select="."/></xsl:attribute>
+    <xsl:attribute name="xml:lang"><xsl:value-of select="."/></xsl:attribute>
   </xsl:template>
 
   <xsl:template match="bookmeta">
-    <bookinfo>
+    <info>
       <xsl:apply-templates/>
-    </bookinfo>
+    </info>
   </xsl:template>
 
   <!-- The Fujitsu docs use both prodname ("ServerView") and Prognum ("CMM
@@ -114,7 +122,7 @@
             <xsl:message>append-to:<xsl:value-of select="$parentfile"/>,generate-include:<xsl:value-of select="$replacement"/></xsl:message>
           </xsl:when>
           <xsl:otherwise>
-            <xi:include href="{$replacement}" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+            <xi:include href="{$replacement}"/>
           </xsl:otherwise>
         </xsl:choose>
       </xsl:when>
@@ -130,7 +138,7 @@
             <xsl:message>append-to:<xsl:value-of select="$parentfile"/>,generate-include:<xsl:value-of select="$file"/></xsl:message>
           </xsl:when>
           <xsl:otherwise>
-            <xi:include href="{$file}" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+            <xi:include href="{$file}"/>
           </xsl:otherwise>
         </xsl:choose>
         <xsl:call-template name="changeroot">
