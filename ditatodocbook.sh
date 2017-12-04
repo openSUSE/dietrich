@@ -233,10 +233,10 @@ fi
 
 for outputpath in $outputfiles; do
 # FIXME: This currently leads to some text-completeness issues.
-   xsltproc \
-      "$mydir/clean-blocks.xsl" \
-      "$outputpath" > "$outputpath.0"
-    mv $outputpath.0 $outputpath
+  xsltproc \
+    "$mydir/clean-blocks.xsl" \
+    "$outputpath" > "$outputpath.0"
+  mv $outputpath.0 $outputpath
 
   outputfile="$(basename $outputpath)"
   root=$(grep -m1 "^file:$outputfile,root:" $tmpdir/includes | sed -r 's_^.+,root:(.+)$_\1_')
