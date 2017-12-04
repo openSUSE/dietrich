@@ -233,16 +233,10 @@ fi
 
 for outputpath in $outputfiles; do
 # FIXME: This currently leads to some text-completeness issues.
-  problematicblocks="self::address|self::bibliolist|self::blockquote|self::bridgehead|self::calloutlist|self::caution|self::classsynopsis|self::cmdsynopsis|self::constraintdef|self::constructorsynopsis|self::destructorsynopsis|self::epigraph|self::equation|self::example|self::fieldsynopsis|self::figure|self::funcsynopsis|self::glosslist|self::important|self::informalexample|self::informalfigure|self::informaltable|self::itemizedlist|self::literallayout|self::mediaobject|self::methodsynopsis|self::msgset|self::note|self::orderedlist|self::procedure|self::procedure|self::productionset|self::programlisting|self::programlistingco|self::qandaset|self::revhistory|self::screen|self::screenco|self::screenshot|self::segmentedlist|self::sidebar|self::simplelist|self::synopsis|self::table|self::task|self::tip|self::variablelist|self::warning"
-
-  # Oh my. Is there anything where I don't apply the rinse/repeat strategy?
-  # This is getting old fast. FIXME
-  while [[ $(xmllint --xpath "//*[(${problematicblocks}) and parent::para]" "$outputpath" 2> /dev/null) ]]; do
-    xsltproc \
+   xsltproc \
       "$mydir/clean-blocks.xsl" \
       "$outputpath" > "$outputpath.0"
     mv $outputpath.0 $outputpath
-  done
 
   outputfile="$(basename $outputpath)"
   root=$(grep -m1 "^file:$outputfile,root:" $tmpdir/includes | sed -r 's_^.+,root:(.+)$_\1_')
