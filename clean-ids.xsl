@@ -4,7 +4,7 @@
 ]>
 
 <xsl:stylesheet version="1.0"
- xmlns="&dbns;"
+ xmlns:d="&dbns;"
  xmlns:xi="http://www.w3.org/2001/XInclude"
  xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:output method="xml"/>
@@ -83,7 +83,7 @@
   <!-- We get a list of linkends, all IDs that are not part of that list are
   removed here. If we don't get anything (not even a space), we don't do
   anything. -->
-  <xsl:template match="@id|@xml:id">
+  <xsl:template match="@xml:id">
     <xsl:if test="contains($linkends, concat(' ', self::node(), ' ')) or
                   string-length($linkends) = 0">
       <xsl:attribute name="{name(.)}"><xsl:apply-templates/></xsl:attribute>
@@ -91,7 +91,7 @@
   </xsl:template>
 
   <!-- Always remove IDs from phrases, however. Those are just annoying. -->
-  <xsl:template match="d:phrase/@id|d:phrase/@xml:id"/>
+  <xsl:template match="d:phrase/@xml:id"/>
 
   <!-- Rewrite paths to images, because DAPS needs images to be in a defined
   place. -->
