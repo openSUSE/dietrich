@@ -48,7 +48,7 @@
 
 #
 # Package Dependencies on openSUSE:
-#   daps dita saxon9-scripts ImageMagick
+#   daps dita ImageMagick
 
 
 ## This script
@@ -207,7 +207,10 @@ for sourcefile in $sourcefiles; do
   # wrong root elements (which we are more likely to notice)
   outputfile="${inputbasename}-$(echo $sourcefile | sed -r 's_[/, ]_-_g')"
   outputpath="$outputxmldir/$outputfile"
-  saxon9 -xsl:"$mydir/dita2docbook_template.xsl" -s:"$tmpdir/$sourcefile" -o:"$outputpath"
+  xsltproc \
+    "$mydir/dita2docbook_template.xsl" \
+    "$tmpdir/$sourcefile" \
+    > "$outputpath"
 
   # Also generate list of output files for later reuse
   outputfiles="$outputfiles $outputpath"
