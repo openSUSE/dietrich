@@ -4,7 +4,7 @@
      applicable licenses.-->
 <!-- (c) Copyright IBM Corp. 2004, 2005 All Rights Reserved. -->
 
-<xsl:stylesheet version="2.0" 
+<xsl:stylesheet version="1.0"
                 xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 
 <xsl:import href="docbook/util.xsl"/>
@@ -13,8 +13,6 @@
 <xsl:import href="docbook/programming2db.xsl"/>
 <xsl:import href="docbook/software2db.xsl"/>
 <xsl:import href="docbook/ui2db.xsl"/>
-
-<dita:extension id="dita.xsl.docbook" behavior="org.dita.dost.platform.ImportXSLAction" xmlns:dita="http://dita-ot.sourceforge.net"/>
 
 <xsl:output
     method="xml"
