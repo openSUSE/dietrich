@@ -120,24 +120,6 @@
       select="../*[contains(@class,' topic/shortdesc ') or contains(@class, ' topic/abstract ')]"/>
   <xsl:variable name="prologNodes" select="*"/>
   <xsl:if test="$shortDescNode or $prologNodes">
-    <!--<xsl:variable name="elementName">
-      <xsl:choose>
-      <xsl:when test="$contextType='article'">info</xsl:when>
-      <xsl:when test="$contextType='appendix'">info</xsl:when>
-      <xsl:when test="$contextType='book'">info</xsl:when>
-      <xsl:when test="$contextType='chapter'">info</xsl:when>
-      <xsl:when test="$contextType='glossary'">info</xsl:when>
-      <xsl:when test="$contextType='part'">info</xsl:when>
-      <xsl:when test="$contextType='section'">info</xsl:when>
-      <xsl:otherwise>
-        <xsl:message>
-          <xsl:text>Unknown context type </xsl:text>
-          <xsl:value-of select="$contextType"/>
-        </xsl:message>
-        <xsl:text>sectioninfo</xsl:text>
-      </xsl:otherwise>
-      </xsl:choose>
-    </xsl:variable>-->
     <info>
       <xsl:call-template name="setStandardAttr">
         <xsl:with-param name="IDPrefix" select="'prlg'"/>
