@@ -4,11 +4,11 @@
 
 c.file.source.attrib =
  ## the source filename
- attribute source { xsd:anyURI }
+ attribute source { text }
 
 c.file.target.attrib =
  ## the target filename
- attribute target { xsd:anyURI }
+ attribute target { text }
 
 c.remove =
  ## Remove this filename
@@ -33,21 +33,21 @@ c.files =
  }
 
 div {
- c.property.key.attrib =
-  ## the key of an property
-  attribute key { text }
-
- c.property.value.attrib =
-  ## the value of an property
-  attribute value { text }
-
- c.property.attibutes =
-   c.property.key.attrib,
-   c.property.value.attrib
-
- c.property =  
-  ## General property
-  element property { c.property.attibutes, empty }
+ c.styleroot = 
+   ## where the stylesheets are located
+   element styleroot { text }
+ c.outputdir =
+   ## where to save the converted files
+   element outputdir { "converted" | text }
+ c.entityfile =
+   ## our entity file
+   element entityfile { "entities.ent" | text }
+ c.cleanids =
+   ## User option: Clean up unused IDs?
+   element cleanids { xsd:boolean }
+ c.cleantmp =
+   ## Dev option: Clean temporary directory after transformation?
+   element cleantmp { xsd:boolean }
 }
 
 div {
@@ -59,7 +59,13 @@ div {
 
  c.config =
   ## root element of the configuration file
-  element config { c.config.attributes, c.property*, c.files* }
+  element config { c.config.attributes,
+  (c.styleroot? &
+   c.entityfile? &
+   c.outputdir? &
+   c.cleanids? &
+   c.cleantmp? )?,
+  c.files* }
 }
 
 start = c.config

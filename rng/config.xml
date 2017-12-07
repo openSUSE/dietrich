@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-model href="file:/local/repos/GH/sknorr/dietrich/rng/conversion.rnc" type="application/relax-ng-compact-syntax"?>
 <config version="1.0">
- <property key="STLYEROOT" value="/usr/share/xml/docbook/stylesheet/suse2013"/>
- <property key="OUTPUTDIR" value="conv/"/>
- <property key="CLEANID" value="1"/>
- <property key="CLEANTEMP" value="1"/>
- <property key="ENTITYFILE" value="entities.ent"/>
+ <cleantmp>false</cleantmp>
+ <outputdir>conv</outputdir>
+
  <files ditamap="overview.ditamap">
   <replace source="shared/gettingstarted/intro-copyright.xml" target="copyright_socm.xml"/>
  </files>
