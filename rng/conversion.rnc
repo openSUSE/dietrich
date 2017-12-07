@@ -1,0 +1,65 @@
+# RELAX NG Schema for the conversion.xml file
+#
+# Author: 2017 Thomas Schraitle
+
+c.file.source.attrib =
+ ## the source filename
+ attribute source { xsd:anyURI }
+
+c.file.target.attrib =
+ ## the target filename
+ attribute target { xsd:anyURI }
+
+c.remove =
+ ## Remove this filename
+ element remove { c.file.source.attrib, empty }
+
+c.replace =
+ ## Replace this filename from source to target
+ element replace { c.file.source.attrib, c.file.target.attrib, empty }
+
+c.files.ditamap.attrib =
+  ## filename to DITAMap
+  attribute ditamap { xsd:anyURI }
+
+c.files.attributes =
+  c.files.ditamap.attrib
+
+c.files =
+ ## a list of files
+ element files {
+  c.files.attributes,
+  (c.replace* & c.remove*)+ 
+ }
+
+div {
+ c.property.key.attrib =
+  ## the key of an property
+  attribute key { text }
+
+ c.property.value.attrib =
+  ## the value of an property
+  attribute value { text }
+
+ c.property.attibutes =
+   c.property.key.attrib,
+   c.property.value.attrib
+
+ c.property =  
+  ## General property
+  element property { c.property.attibutes, empty }
+}
+
+div {
+ c.config.version.attrib =
+  ## The version of this schema
+  attribute version { "1.0" }?
+
+ c.config.attributes = c.config.version.attrib
+
+ c.config =
+  ## root element of the configuration file
+  element config { c.config.attributes, c.property*, c.files* }
+}
+
+start = c.config

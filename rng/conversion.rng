@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<grammar xmlns:a="http://relaxng.org/ns/compatibility/annotations/1.0" xmlns="http://relaxng.org/ns/structure/1.0" datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
+  <!--
+    RELAX NG Schema for the conversion.xml file
+    
+    
+    Author: 2017 Thomas Schraitle 
+  -->
+  <define name="c.file.source.attrib">
+    <attribute name="source">
+      <a:documentation>the source filename</a:documentation>
+      <data type="anyURI"/>
+    </attribute>
+  </define>
+  <define name="c.file.target.attrib">
+    <attribute name="target">
+      <a:documentation>the target filename</a:documentation>
+      <data type="anyURI"/>
+    </attribute>
+  </define>
+  <define name="c.remove">
+    <element name="remove">
+      <a:documentation>Remove this filename</a:documentation>
+      <ref name="c.file.source.attrib"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="c.replace">
+    <element name="replace">
+      <a:documentation>Replace this filename from source to target</a:documentation>
+      <ref name="c.file.source.attrib"/>
+      <ref name="c.file.target.attrib"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="c.files.ditamap.attrib">
+    <attribute name="ditamap">
+      <a:documentation>filename to DITAMap</a:documentation>
+      <data type="anyURI"/>
+    </attribute>
+  </define>
+  <define name="c.files.attributes">
+    <ref name="c.files.ditamap.attrib"/>
+  </define>
+  <define name="c.files">
+    <element name="files">
+      <a:documentation>a list of files</a:documentation>
+      <ref name="c.files.attributes"/>
+      <oneOrMore>
+        <interleave>
+          <zeroOrMore>
+            <ref name="c.replace"/>
+          </zeroOrMore>
+          <zeroOrMore>
+            <ref name="c.remove"/>
+          </zeroOrMore>
+        </interleave>
+      </oneOrMore>
+    </element>
+  </define>
+  <div>
+    <define name="c.property.key.attrib">
+      <attribute name="key">
+        <a:documentation>the key of an property</a:documentation>
+      </attribute>
+    </define>
+    <define name="c.property.value.attrib">
+      <attribute name="value">
+        <a:documentation>the value of an property</a:documentation>
+      </attribute>
+    </define>
+    <define name="c.property.attibutes">
+      <ref name="c.property.key.attrib"/>
+      <ref name="c.property.value.attrib"/>
+    </define>
+    <define name="c.property">
+      <element name="property">
+        <a:documentation>General property</a:documentation>
+        <ref name="c.property.attibutes"/>
+        <empty/>
+      </element>
+    </define>
+  </div>
+  <div>
+    <define name="c.config.version.attrib">
+      <optional>
+        <attribute name="version">
+          <a:documentation>The version of this schema</a:documentation>
+          <value>1.0</value>
+        </attribute>
+      </optional>
+    </define>
+    <define name="c.config.attributes">
+      <ref name="c.config.version.attrib"/>
+    </define>
+    <define name="c.config">
+      <element name="config">
+        <a:documentation>root element of the configuration file</a:documentation>
+        <ref name="c.config.attributes"/>
+        <zeroOrMore>
+          <ref name="c.property"/>
+        </zeroOrMore>
+        <zeroOrMore>
+          <ref name="c.files"/>
+        </zeroOrMore>
+      </element>
+    </define>
+  </div>
+  <start>
+    <ref name="c.config"/>
+  </start>
+</grammar>
