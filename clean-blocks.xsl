@@ -9,6 +9,7 @@
 <xsl:stylesheet version="1.0"
  xmlns="&dbns;"
  xmlns:d="&dbns;"
+ xmlns:xlink="http://www.w3.org/1999/xlink"
  xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
  exclude-result-prefixes="d">
   <xsl:output method="xml"/>

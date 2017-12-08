@@ -22,7 +22,7 @@
 #     + ENTITYFILE: File name (not path!) of an external file that will be
 #         included with all XML files. To reuse an existing file, it has to
 #         exist below [OUTPUTDIR]/xml, if it does not, an empty file will be
-#         created. (default: "entities.xml")
+#         created. (default: "entities.ent")
 #     + [DITAMAP]_DC: Name of output DC file.
 #         (default: DC-[DITAMAP's_NAME])
 #     + [DITAMAP]_MAIN: Name of output main file.
@@ -84,7 +84,7 @@ STYLEROOT=""
 CLEANTEMP=1
 CLEANID=0
 TWEAK=""
-ENTITYFILE="entities.xml"
+ENTITYFILE="entities.ent"
 
 ## Source a config file, if any
 # This is an evil security issue but let's ignore that for the moment.
@@ -161,11 +161,7 @@ replacedfiles="$(sed -n -r 's/^source-file-replaced:// p' $tmpdir/includes)"
 
 for sourcefile in $sourcefiles; do
   mkdir -p "$tmpdir/$(dirname $sourcefile)"
-  xsltproc \
-    --stringparam "basepath" "$basedir"\
-    --stringparam "relativefilepath" "$(dirname $sourcefile)"\
-    "$mydir/resolve-conrefs.xsl" \
-    "$basedir/$sourcefile" > "$tmpdir/$sourcefile"
+  cp "$basedir/$sourcefile" "$tmpdir/$sourcefile"
 
   # Rinse and repeat while there are still conrefs left. This is dumb but
   # effective and does not involve overly complicated XSLT.
@@ -181,7 +177,7 @@ done
 
 ## Modify the original DITA files to get rid of duplicate IDs.
 tempsourcefiles=$(echo $sourcefiles | sed -r "s,[^ ]+,$tmpdir/&,g")
-allids="$(xmllint --xpath '//@id|//@xml:id' $tempsourcefiles 2> /dev/null | tr ' ' '\n' | sed -r -e 's/^(xml:)?id=\"//' -e 's/\"$//' | sort)"
+allids=$(xsltproc --stringparam 'name' 'id' $mydir/find.xsl $tempsourcefiles 2> /dev/null | sort)
 nonuniqueids=$(echo -e "$allids" | uniq -d | tr '\n' ' ')
 
 for sourcefile in $sourcefiles; do
@@ -227,12 +223,13 @@ dcfile="$outputdirabs/$dcname"
 linkends=""
 if [[ $CLEANID == 1 ]]; then
   # Spaces at the beginning/end are intentional & necessary for XSLT later.
-  linkends=" $(xmllint --xpath '//@linkend' $outputfiles 2> /dev/null | tr ' ' '\n' | sed -r -e 's/^linkend=\"//' -e 's/\"$//' | sort | uniq | tr '\n' ' ') "
+  linkends=" $(xsltproc --stringparam 'name' 'linkend' $mydir/find.xsl $mydir/$outputfiles 2> /dev/null | tr '\n' ' ') "
 fi
 
 
 for outputpath in $outputfiles; do
-# FIXME: This currently leads to some text-completeness issues.
+
+  # FIXME: This currently leads to some text-completeness issues.
   xsltproc \
     "$mydir/clean-blocks.xsl" \
     "$outputpath" > "$outputpath.0"
@@ -250,6 +247,25 @@ for outputpath in $outputfiles; do
     --stringparam "entityfile" "$ENTITYFILE" \
     "$mydir/clean-ids.xsl" \
     "$outputpath" > "$outputpath.0" 2>> "$tmpdir/neededstuff"
+  mv $outputpath.0 $outputpath
+
+  # FIXME: Hello insanity! Thy name is workaround. We have up to three
+  # namespaces, so run three times. This avoids having to use
+  # XSLT 2 but deserves a triple *facepalm* at least.
+  # Hopefully, we can replace this mess with Python soon.
+  # Also, I am doing that as the last trnasformation here, because otherwise,
+  # this transformation is undone again by clean-blocks/clean-ids.
+  thisfile=$(cat "$outputpath" | tr '\n' '\r' | sed -r \
+    -e 's/(<[^>]+[ \t\r])xmlns(:[a-z]+)?="[^"]+"/\1/g' \
+    -e 's/(<[^>]+[ \t\r])xmlns(:[a-z]+)?="[^"]+"/\1/g' \
+    -e 's/(<[^>]+[ \t\r])xmlns(:[a-z]+)?="[^"]+"/\1/g' \
+    | tr '\r' '\n')
+  thisline=$(echo -e "$thisfile" | grep -m1 -n '<(section|chapter|preface|appendix)' | grep -oP '^[0-9]+')
+  echo -e "$thisfile" | sed -r \
+    -e "$thisline s_<(section|chapter|preface|appendix)_& xmlns=\"http://docbook.org/ns/docbook\" xmlns:xi=\"http://www.w3.org/2001/XInclude\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"_" \
+    -e 's/(<[^>]+) +(>)/\1\2/g' \
+    -e 's/(<[^>]+)  +([^>]+>)/\1 \2/g' \
+    > "$outputpath.0"
   mv $outputpath.0 $outputpath
 done
 

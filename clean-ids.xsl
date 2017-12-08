@@ -4,9 +4,12 @@
 ]>
 
 <xsl:stylesheet version="1.0"
+ xmlns="&dbns;"
  xmlns:d="&dbns;"
  xmlns:xi="http://www.w3.org/2001/XInclude"
- xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+ xmlns:xlink="http://www.w3.org/1999/xlink"
+ xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+ exclude-result-prefixes="d">
   <xsl:output method="xml"/>
 
   <xsl:include href="paths.xsl"/>
@@ -46,8 +49,10 @@
     </xsl:copy>
   </xsl:template>
 
+<!--  <xsl:template match="*[not(/*)]/@*[starts-with(name(self::@*),'xmlns')]"/>-->
+
   <xsl:template match="/*">
-    <xsl:element name="{$actual-root}" namespace="&amp;dbns;">
+    <xsl:element name="{$actual-root}" namespace="&dbns;">
       <xsl:apply-templates select="@*|node()"/>
       <xsl:if test="string-length($includes) &gt; 0">
         <xsl:call-template name="generate-imports">

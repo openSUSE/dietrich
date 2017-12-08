@@ -1306,7 +1306,7 @@ DATA-TYPE PHRASES: date time currency char num bin oct dec hex ???
   <xsl:param name="attrName" select="local-name(.)"/>
   <xsl:choose>
   <xsl:when test="$attrName='id'">
-    <xsl:attribute name="id">
+    <xsl:attribute name="xml:id">
       <xsl:value-of select="."/>
     </xsl:attribute>
   </xsl:when>
