@@ -46,14 +46,14 @@ LOGLEVELS = {None: logging.WARNING,  # 0
              }
 
 #: Instantiate our logger
-log = logging.getLogger(LOGGERNAME)
+log=logging.getLogger(LOGGERNAME)
 
 #: the namespace for our extension function
 EXTENSION_NS="urn:x-suse:python:dietrich"
 
 XSLT_NS="http://www.w3.org/1999/XSL/Transform"
 
-XSLT_ROOTS = (etree.QName(XSLT_NS, "stylesheet"), etree.QName(XSLT_NS, "transform"))
+XSLT_ROOTS=(etree.QName(XSLT_NS, "stylesheet"), etree.QName(XSLT_NS, "transform"))
 
 
 class PyProcXSLTError(etree.Error):
@@ -140,6 +140,19 @@ def parse(cliargs=None):
     return args
 
 
+# -------------------------------------------------------------------
+def py_normpath(context, node):
+    """
+    """
+    log.info("Calling normpath with: %r", node)
+    if isinstance(node, list) and isinstance(node[0], etree._Element):
+        path = node[0].text
+    elif isinstance(node, list) and isinstance(node[0], str):
+        path = node[0]
+    return path.upper()
+
+
+# -------------------------------------------------------------------
 def process(args):
     """Process the XML file with XSLT stylesheet
 
@@ -150,6 +163,11 @@ def process(args):
                          # resolve_entities=,
                          # encoding=args.encoding,
                          )
+    # prepare parser
+    ns=etree.FunctionNamespace(EXTENSION_NS)
+    ns.prefix = 'py'
+    ns.update(dict(normpath=py_normpath))
+
     xmlparser = etree.XMLParser(**parseroptions)
     root = etree.parse(args.xml, parser=xmlparser)
     if args.xinclude:

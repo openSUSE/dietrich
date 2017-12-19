@@ -5,5 +5,6 @@
  xmlns="http://docbook.org/ns/docbook"
  xmlns:xlink="http://www.w3.org/1999/xlink">
  <title>The PyProc Doc Test</title>
- <para>The quick brown fox jumps over the lazy dog.</para>
+ <para>The quick brown <envar>fox</envar> jumps over the lazy dog.
+ </para>
 </article>
