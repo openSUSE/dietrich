@@ -160,7 +160,7 @@ def process(args):
     :type args: :class:`argparse.Namespace`
     """
     parseroptions = dict(no_network=args.nonet,
-                         # resolve_entities=,
+                         # resolve_entities=args.resolve_entities,
                          # encoding=args.encoding,
                          )
     # prepare parser
@@ -179,12 +179,11 @@ def process(args):
     xsltproc = etree.XSLT(xsltproc)
     resulttree = xsltproc(root)
 
-    result = etree.tostring(resulttree, encoding="unicode")
+    #result = etree.tostring(resulttree, encoding="unicode")
     if not args.output:
-        sys.stdout.write(result)
+        sys.stdout.write(str(resulttree))
     else:
-        with open(args.output, mode="w") as fh:
-            fh.write(result)
+        resulttree.write_output(args.output)
         log.info("Result written to %r", args.output)
 
 
