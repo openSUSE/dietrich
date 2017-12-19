@@ -5,12 +5,61 @@ A replacement for xsltproc with custom extension functions
 
 import argparse
 import copy as _copy
+import logging
+from logging.config import dictConfig
 from lxml import etree
 import re
 import sys
 
+LOGGERNAME='pyproc'
+
+#: The dictionary, used by :class:`logging.config.dictConfig`
+#: use it to setup your logging formatters, handlers, and loggers
+#: For details, see https://docs.python.org/3.4/library/logging.config.html#configuration-dictionary-schema
+DEFAULT_LOGGING_DICT = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'standard': {'format': '[%(levelname)s] %(name)s: %(message)s'},
+    },
+    'handlers': {
+        'default': {
+            'level': 'NOTSET',
+            'formatter': 'standard',
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+       LOGGERNAME: {
+            'handlers': ['default'],
+            'level': 'INFO',
+            'propagate': True
+        }
+    }
+}
+
+#: Map verbosity level (int) to log level
+LOGLEVELS = {None: logging.WARNING,  # 0
+             0: logging.WARNING,
+             1: logging.INFO,
+             2: logging.DEBUG,
+             }
+
+#: Instantiate our logger
+log = logging.getLogger(LOGGERNAME)
+
+#: the namespace for our extension function
 EXTENSION_NS="urn:x-suse:python:dietrich"
 
+XSLT_NS="http://www.w3.org/1999/XSL/Transform"
+
+XSLT_ROOTS = (etree.QName(XSLT_NS, "stylesheet"), etree.QName(XSLT_NS, "transform"))
+
+
+class PyProcXSLTError(etree.Error):
+    def __init__(self, message, *, filename=None):
+        super().__init__(message)
+        self.filename = filename
 
 
 class ParamAppendAction(argparse._AppendAction):
@@ -84,6 +133,10 @@ def parse(cliargs=None):
                         )
 
     args = parser.parse_args(cliargs)
+    # Setup logging and the log level according to the "-v" option
+    dictConfig(DEFAULT_LOGGING_DICT)
+    log.setLevel(LOGLEVELS.get(args.verbose, logging.DEBUG))
+    log.info("CLI result: %s", args)
     return args
 
 
@@ -102,30 +155,39 @@ def process(args):
     if args.xinclude:
         root.xinclude()
     xsltproc = etree.parse(args.xslt)
-    
+    if etree.QName(xsltproc.getroot()) not in XSLT_ROOTS:
+        raise PyProcXSLTError("No stylesheet root tag found!", filename=args.xslt)
+
     xsltproc = etree.XSLT(xsltproc)
-    print(">>>", xsltproc, file=sys.stderr)
     resulttree = xsltproc(root)
 
-    print(">>>", args.output, file=sys.stderr)
     result = etree.tostring(resulttree, encoding="unicode")
     if not args.output:
         sys.stdout.write(result)
     else:
         with open(args.output, mode="w") as fh:
             fh.write(result)
+        log.info("Result written to %r", args.output)
 
 
 def main(cliargs=None):
+    """main function of the script
+
+    :param list cliargs: command line arguments
+    :return: success (=0) or not
+    """
     args = parse(cliargs)
-    print(args)
     try:
         process(args)
-    except etree.XMLSyntaxError as error:
-        print(error, file=sys.stderr)
-        print("file: %r" % error.filename, file=sys.stderr)
+    except (etree.XMLSyntaxError, PyProcXSLTError) as error:
+        log.fatal(error)
+        log.fatal("file: %r", error.filename)
+        return 1
     except OSError as error:
-        print(error, file=sys.stderr)
+        log.fatal(error)
+        return 2
+
+    return 0
 
 
 if __name__ == "__main__":
