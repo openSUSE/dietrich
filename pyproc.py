@@ -177,7 +177,8 @@ def process(args):
         raise PyProcXSLTError("No stylesheet root tag found!", filename=args.xslt)
 
     xsltproc = etree.XSLT(xsltproc)
-    resulttree = xsltproc(root)
+    params = {} if not hasattr(args, 'params') else args.params
+    resulttree = xsltproc(root, **params)
 
     #result = etree.tostring(resulttree, encoding="unicode")
     if not args.output:
