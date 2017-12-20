@@ -52,7 +52,7 @@ LOGLEVELS = {None: logging.WARNING,  # 0
 log=logging.getLogger(LOGGERNAME)
 
 
-DEFAULT_CONFIGFILENAME='conversion.conf'
+DEFAULT_CONFIGFILENAME='conversion.cfg'
 
 
 def parse_cli(cliargs=None):
