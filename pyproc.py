@@ -68,6 +68,7 @@ class ParamAppendAction(argparse._AppendAction):
     """
     def __call__(self, parser, namespace, values, option_string=None):
         name, value = values
+        # Don't allow invalid characters in parameter name:
         if re.search("[+:]", name):
             raise argparse.ArgumentError(self,
                                          "name %r in option --%s "
@@ -177,7 +178,16 @@ def process(args):
         raise PyProcXSLTError("No stylesheet root tag found!", filename=args.xslt)
 
     xsltproc = etree.XSLT(xsltproc)
-    params = {} if not hasattr(args, 'params') else args.params
+    # This is our common parameter dictionary for both --stringparam's and --param's
+    params = {}
+    # params = {} if not hasattr(args, 'params') else args.params
+    # We need to prepare our (string)parameters with .strparam() to avoid
+    # being interpreted as XPath:
+    if args.stringparam:
+        params = {key: etree.XSLT.strparam(value) for key, value in args.stringparam}
+    # For the normal --param option, we pass it without further changes:
+    if args.param:
+        params.update(args.param)
     resulttree = xsltproc(root, **params)
 
     #result = etree.tostring(resulttree, encoding="unicode")

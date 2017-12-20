@@ -5,6 +5,9 @@
  xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
  exclude-result-prefixes="d">
  
+ <xsl:param name="file"/>
+
+ 
  <xsl:template match="d:article">
   <art>
    <xsl:apply-templates/>
@@ -18,7 +21,7 @@
  </xsl:template>
  
  <xsl:template match="d:envar">
-  <ph><xsl:value-of select="py:normpath(text())"/></ph>
+  <ph><xsl:value-of select="concat($file, '-', py:normpath(text()))"/></ph>
  </xsl:template>
  
 </xsl:stylesheet>
