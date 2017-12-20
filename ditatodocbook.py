@@ -204,6 +204,25 @@ def debugconfig(args):
     log.info("--------------------------------------")
 
 
+def xmlparser_args(args):
+    """Create default Namespace for XMLParser
+
+     :param args: the arguments from the argparse object
+     :type args: :class:`argparse.Namespace`
+     :return: :class:`argparse.Namespace` for XMLParser
+    """
+    return argparse.Namespace(xinclude=False,
+                              nonet=True, # => no_network
+                              # output=None,
+                              novalid=True,
+                              # load_dtd=True,
+                              # resolve_entities=True,
+                              stringparam=None,
+                              param=None,
+                              xsltresult=True
+                              )
+
+
 def create_mainfile(args):
     """Create the MAIN*.xml file
 
@@ -212,19 +231,16 @@ def create_mainfile(args):
      :return: list of source files and replaced files
     """
     log.info("=== Creating MAIN file...")
-    procargs = argparse.Namespace(xml=args.ditamap,
-                                  xslt=os.path.join(XSLTDIR, "map-to-MAIN.xsl"),
-                                  xinclude=False,
-                                  nonet=True,
-                                  output=os.path.join(args.conv.xmldir, args.conv.mainfile),
-                                  novalid=True,
-                                  resolve_entities=True,
-                                  stringparam={'prefix': args.conv.basename,
-                                               'entityfile': args.entityfile,
-                                               },
-                                  param=None,
-                                  xsltresult=True
-                                  )
+    procargs=xmlparser_args(args)
+    procargs.xml=args.ditamap
+    procargs.xsltresult=True
+    procargs.xslt=os.path.join(XSLTDIR, "map-to-MAIN.xsl")
+    procargs.output=os.path.join(args.conv.xmldir, args.conv.mainfile)
+    procargs.stringparam={'prefix': args.conv.basename,
+                          'entityfile': args.entityfile,
+                          }
+    # procargs.resolve_entities=True
+
     os.makedirs(args.conv.xmldir, exist_ok=True)
     xslt, transform = pyproc.process(procargs)
     log.debug("Wrote %r", procargs.output)
@@ -263,7 +279,8 @@ def hasconref(node):
 
 
 def include_conrefs(args, sourcefiles, replacedfiles):
-    """
+    """Resolve DITA's conref attribute
+
      :param args: the arguments from the argparse object
      :type args: :class:`argparse.Namespace`
     """
@@ -280,20 +297,10 @@ def include_conrefs(args, sourcefiles, replacedfiles):
     #    "$basedir/$sourcefile" > "$tmpdir/$sourcefile"
     #
     # All uncommented lines are replaced inside the for-loop:
-    procargs = argparse.Namespace(# xml=None,
-                                  xslt=os.path.join(XSLTDIR, "resolve-conrefs.xsl"),
-                                  xinclude=False,
-                                  nonet=True, # => no_network
-                                  # output=None,
-                                  novalid=True,
-                                  # load_dtd=True,
-                                  # resolve_entities=True,
-                                  stringparam={'basepath': args.conv.basedir,
-                                               # 'relativefilepath': sfdir,
-                                               },
-                                  param=None,
-                                  xsltresult=True
-                                  )
+    procargs = xmlparser_args(args)
+    procargs.xslt=os.path.join(XSLTDIR, "resolve-conrefs.xsl")
+    procargs.stringparam={'basepath': args.conv.basedir,
+                          }
     failedfiles=[]
     for sf in sourcefiles:
         sfdir=os.path.dirname(sf)
