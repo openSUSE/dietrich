@@ -153,7 +153,7 @@ def py_normpath(context, node):
     return path.upper()
 
 
-def pyproc_xmlparser(args):
+def create_xmlparser(args):
     """Return a XMLParser object with the appropriate properties
 
     :param args: the arguments from the argparse object
@@ -184,7 +184,7 @@ def process(args):
     ns.prefix = 'py'
     ns.update(dict(normpath=py_normpath))
 
-    xmlparser = pyproc_xmlparser(args)
+    xmlparser = create_xmlparser(args)
     root = etree.parse(args.xml, parser=xmlparser)
     if args.xinclude:
         root.xinclude()
