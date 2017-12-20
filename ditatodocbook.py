@@ -417,6 +417,7 @@ def collect_linkends(args, outputfiles):
         # FIXME: Need to create a root object first and iterate
         # over linkend attributes:
         # linkends.extend(root.xpath("//@linkend"))
+        pass
 
 
 def copyimages(args):
@@ -426,7 +427,6 @@ def copyimages(args):
      :type args: :class:`argparse.Namespace`
     """
     log.info("=== Copying images...")
-    pass
 
 
 def convert2db(args, sourcefiles):
@@ -551,6 +551,7 @@ def main(cliargs=None):
         include_conrefs(args, sourcefiles, replacedfiles)
         create_dcfile(args)
         make_unique_ids(args, sourcefiles)
+        # convert2db(args, sourcefiles)
         investigate_ditafiles(args)
 
         if args.cleantmp:
