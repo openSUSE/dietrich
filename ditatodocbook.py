@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import collections
 from lxml import etree
 import logging
 from logging.config import dictConfig
@@ -400,6 +401,32 @@ def create_dcfile(args):
         fh.write("# ROOTID=\n")
         if args.styleroot:
             fh.write("STYLEROOT=%s\n" % args.styleroot)
+
+
+def collect_linkends(args, outputfiles):
+    """Collect all linkends of the converted files (FIXME)
+
+     :param args: the arguments from the argparse object
+     :type args: :class:`argparse.Namespace`
+    """
+    log.info("=== Collecting linkends...")
+    linkends=[]
+    if not args.cleanid:
+        return linkends
+    for output in outputfiles:
+        # FIXME: Need to create a root object first and iterate
+        # over linkend attributes:
+        # linkends.extend(root.xpath("//@linkend"))
+
+
+def copyimages(args):
+    """Copy all image files FIXME
+
+     :param args: the arguments from the argparse object
+     :type args: :class:`argparse.Namespace`
+    """
+    log.info("=== Copying images...")
+    pass
 
 
 def convert2db(args, sourcefiles):
