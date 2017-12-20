@@ -438,7 +438,24 @@ def convert2db(args, sourcefiles):
     """
     log.info("=== Creating DocBook files")
     outputfiles=[]
+    procargs=xmlparser_args(args)
+
     # HINT: Maybe use saxon9 to convert this?
+    procargs.xslt=os.path.join(XSLTDIR, "dita2docbook_template.xsl")
+    for sf in sourcefiles[:1]:
+        outfile="%s-%s" % (args.conv.basename, sf.replace('/','-'))
+        outputpath=os.path.join(args.conv.xmldir, outfile)
+        procargs.xml=os.path.join(args.conv.tmpdir, sf)
+        procargs.output=outputpath
+        log.debug("procargs %s", procargs)
+        xslt, transform = pyproc.process(procargs)
+        for entry in transform.error_log:
+            log.warning(entry)
+        log.debug("DITA->DocBook for %r", outfile)
+        outputfiles.append(outfile)
+    log.debug("All output files: %s", outputfiles)
+    return outputfiles
+
 
 def get_ditafiles(args):
     """Get all .dita files
