@@ -5,7 +5,9 @@
 <!-- (c) Copyright IBM Corp. 2004, 2005 All Rights Reserved. -->
 
 <xsl:stylesheet version="1.0"
-                xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+                xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+                xmlns:dita="http://dita-ot.sourceforge.net"
+                exclude-result-prefixes="dita">
 
 <xsl:import href="docbook/util.xsl"/>
 <xsl:import href="docbook/topic2db.xsl"/>
@@ -14,15 +16,13 @@
 <xsl:import href="docbook/software2db.xsl"/>
 <xsl:import href="docbook/ui2db.xsl"/>
 
-<dita:extension id="dita.xsl.docbook" behavior="org.dita.dost.platform.ImportXSLAction" xmlns:dita="http://dita-ot.sourceforge.net"/>
+<dita:extension id="dita.xsl.docbook" behavior="org.dita.dost.platform.ImportXSLAction" />
 
 <xsl:output
     method="xml"
     indent="yes"
     omit-xml-declaration="no"
-    standalone="no"
-    doctype-public="-//OASIS//DTD DocBook XML V4.2//EN"
-    doctype-system="http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd"/>
+    standalone="no"/>
 
 
 <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
