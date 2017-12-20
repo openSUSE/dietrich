@@ -153,12 +153,12 @@ def py_normpath(context, node):
     return path.upper()
 
 
-# -------------------------------------------------------------------
-def process(args):
-    """Process the XML file with XSLT stylesheet
+def pyproc_xmlparser(args):
+    """Return a XMLParser object with the appropriate properties
 
     :param args: the arguments from the argparse object
     :type args: :class:`argparse.Namespace`
+    :return: an :class:`etree.XMLParser` object
     """
     parseroptions = dict(no_network=args.nonet,
                          # resolve_entities=args.resolve_entities,
@@ -169,12 +169,22 @@ def process(args):
                          attribute_defaults=False,
                          load_dtd=False,
                          )
+    return etree.XMLParser(**parseroptions)
+
+
+# -------------------------------------------------------------------
+def process(args):
+    """Process the XML file with XSLT stylesheet
+
+    :param args: the arguments from the argparse object
+    :type args: :class:`argparse.Namespace`
+    """
     # prepare parser
     ns=etree.FunctionNamespace(EXTENSION_NS)
     ns.prefix = 'py'
     ns.update(dict(normpath=py_normpath))
 
-    xmlparser = etree.XMLParser(**parseroptions)
+    xmlparser = pyproc_xmlparser(args)
     root = etree.parse(args.xml, parser=xmlparser)
     if args.xinclude:
         root.xinclude()
