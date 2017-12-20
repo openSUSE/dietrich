@@ -301,7 +301,6 @@ def include_conrefs(args, sourcefiles, replacedfiles):
     #    "$mydir/resolve-conrefs.xsl" \
     #    "$basedir/$sourcefile" > "$tmpdir/$sourcefile"
     #
-    # All uncommented lines are replaced inside the for-loop:
     procargs = xmlparser_args(args)
     procargs.xslt=os.path.join(XSLTDIR, "resolve-conrefs.xsl")
     procargs.stringparam={'basepath': args.conv.basedir,
@@ -337,20 +336,8 @@ def include_conrefs(args, sourcefiles, replacedfiles):
 
         xml = etree.parse(procargs.output)
         if hasconref(xml):
-            # FIXME
+            # FIXME: this is (maybe) another rinse and repeat strategy
             log.warning("File %r needs another round of conref resolution", sf)
-
-    #  # Rinse and repeat while there are still conrefs left. This is dumb but
-    #  # effective and does not involve overly complicated XSLT.
-    #  while [[ $(xmllint --xpath '//*[@conref]' "$tmpdir/$sourcefile" 2> /dev/null) ]]; do
-    #    xsltproc \
-    #      --stringparam "basepath" "$basedir"\
-    #      --stringparam "relativefilepath" "$(dirname $sourcefile)"\
-    #      "$mydir/resolve-conrefs.xsl" \
-    #      "$tmpdir/$sourcefile" > "$tmpdir/$sourcefile-0"
-    #    mv "$tmpdir/$sourcefile-0" "$tmpdir/$sourcefile"
-    #  done
-    #done
 
     if failedfiles:
         log.critical("Failed files: %s", failedfiles)
@@ -416,24 +403,15 @@ def create_dcfile(args):
 
 
 def convert2db(args, sourcefiles):
-    """Actual conversion from DITA to DocBook
+    """Actual conversion from DITA to DocBook (FIXME)
+
+     :param args: the arguments from the argparse object
+     :type args: :class:`argparse.Namespace`
+     :param list sourcefiles: a list of sourcefiles
     """
-    ## Actual conversion
-    #outputfiles=""
-    #for sourcefile in $sourcefiles; do
-    #  # We need the name of the ditamap in here, because you might want to
-    #  # generate DocBook files for multiple ditamaps into the same directory, if
-    #  # these files then overwrite each other, we might run into issue because
-    #  # they might include wrong XIncludes (which we might not even notice) or
-    #  # wrong root elements (which we are more likely to notice)
-    #  outputfile="${inputbasename}-$(echo $sourcefile | sed -r 's_[/, ]_-_g')"
-    #  outputpath="$outputxmldir/$outputfile"
-    #  saxon9 -xsl:"$mydir/dita2docbook_template.xsl" -s:"$tmpdir/$sourcefile" -o:"$outputpath"
-    #
-    #  # Also generate list of output files for later reuse
-    #  outputfiles="$outputfiles $outputpath"
-    #done
+    log.info("=== Creating DocBook files")
     outputfiles=[]
+    # HINT: Maybe use saxon9 to convert this?
 
 def get_ditafiles(args):
     """Get all .dita files
