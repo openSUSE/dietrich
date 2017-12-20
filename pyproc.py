@@ -163,6 +163,11 @@ def process(args):
     parseroptions = dict(no_network=args.nonet,
                          # resolve_entities=args.resolve_entities,
                          # encoding=args.encoding,
+                         # We don't want the DITA DTD being loaded:
+                         resolve_entities=False,
+                         dtd_validation=False,
+                         attribute_defaults=False,
+                         load_dtd=False,
                          )
     # prepare parser
     ns=etree.FunctionNamespace(EXTENSION_NS)
@@ -180,7 +185,6 @@ def process(args):
     xsltproc = etree.XSLT(xsltproc)
     # This is our common parameter dictionary for both --stringparam's and --param's
     params = {}
-    # params = {} if not hasattr(args, 'params') else args.params
     # We need to prepare our (string)parameters with .strparam() to avoid
     # being interpreted as XPath:
     if args.stringparam:
