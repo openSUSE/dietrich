@@ -353,13 +353,41 @@ def include_conrefs(args, sourcefiles, replacedfiles):
         log.debug("All files were transformed! :-)")
 
 
-def make_unique_ids(args):
+def make_unique_ids(args, sourcefiles):
     """Modify the original DITA files to get rid of duplicate IDs
 
      :param args: the arguments from the argparse object
      :type args: :class:`argparse.Namespace`
+     :param list sourcefiles: a list of sourcefile
     """
-    pass
+    log.info("=== Making IDs unique")
+    tmpsourcefiles = [os.path.join(args.conv.tmpdir, s) for s in sourcefiles]
+    procargs = xmlparser_args(args)
+    xmlparser = pyproc.create_xmlparser(procargs)
+    allids=[]
+    for tmp in tmpsourcefiles:
+        root = etree.parse(tmp, parser=xmlparser)
+        allids.extend(root.xpath('//@id|//@xml:id'))
+    allids.sort()
+    # We are only interested in IDs which occurs more than once
+    nonuniqueids=[key for key, value in collections.Counter(allids).items() if value > 1]
+    nonuniqueids=" ".join(nonuniqueids)
+    # log.debug("non unique id's: %s", nonuniqueids)
+    # procargs=xmlparser_args(args)
+    procargs.xslt=os.path.join(XSLTDIR, "create-unique-ids.xsl")
+    for sf in sourcefiles:
+        procargs.xml=os.path.join(args.conv.tmpdir, sf)
+        procargs.output="%s-0" % procargs.xml
+        procargs.stringparam={'nonuniqueids': nonuniqueids,
+                              'self': sf,
+                              'prefix': args.conv.basedir,
+                              }
+        # log.debug("  parser args: %s", procargs)
+        xslt, transform = pyproc.process(procargs)
+        log.debug("Make unique IDs for %r", procargs.xml)
+        for entry in transform.error_log:
+            log.debug(entry.message)
+        os.rename(procargs.output, procargs.xml)
 
 
 def create_dcfile(args):
@@ -419,7 +447,7 @@ def main(cliargs=None):
         sourcefiles, replacedfiles = create_mainfile(args)
         include_conrefs(args, sourcefiles, replacedfiles)
         create_dcfile(args)
-
+        make_unique_ids(args, sourcefiles)
         if args.cleantmp:
             shutil.rmtree(args.conv.tmpdir)
 
