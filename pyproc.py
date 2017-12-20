@@ -186,6 +186,8 @@ def process(args):
     else:
         resulttree.write_output(args.output)
         log.info("Result written to %r", args.output)
+    if hasattr(args, 'xsltresult') and args.xsltresult:
+        return resulttree, xsltproc
 
 
 def main(cliargs=None):
