@@ -95,6 +95,10 @@ def parse_cli(cliargs=None):
                        default=False,
                        help='Delete temporary directory after conversion (default %(default)s)'
                        )
+    group.add_argument('--tmpdir',
+                       default=None,
+                       help='Define your own temporary directory'
+                       )
     group.add_argument('--cleanid',
                        action='store_true',
                        default=False,
@@ -442,7 +446,11 @@ def main(cliargs=None):
     try:
         parseconfig(args)
         debugconfig(args)
-        args.conv.tmpdir = tempfile.mkdtemp(suffix="db-convert")
+        if args.tmpdir is None:
+            args.conv.tmpdir = tempfile.mkdtemp(suffix="db-convert")
+        else:
+            args.conv.tmpdir = args.tmpdir
+            os.makedirs(args.tmpdir, exist_ok=True)
         log.info("Created temp directory: %r", args.conv.tmpdir)
         sourcefiles, replacedfiles = create_mainfile(args)
         include_conrefs(args, sourcefiles, replacedfiles)
