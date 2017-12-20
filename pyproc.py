@@ -184,7 +184,8 @@ def process(args):
     # We need to prepare our (string)parameters with .strparam() to avoid
     # being interpreted as XPath:
     if args.stringparam:
-        params = {key: etree.XSLT.strparam(value) for key, value in args.stringparam}
+        params = {key: etree.XSLT.strparam(value) \
+                  for key, value in dict(args.stringparam).items()}
     # For the normal --param option, we pass it without further changes:
     if args.param:
         params.update(args.param)
