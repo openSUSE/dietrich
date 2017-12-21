@@ -23,7 +23,7 @@
 
   <xsl:choose>
    <!-- We assume filename without .xml is equal to its ID -->
-   <xsl:when test="substring-before($conrefs.file, '.xml') = $preid">
+   <xsl:when test="contains($conrefs.file, $preid)">
     <xsl:message>Resolve conkeyref <xsl:value-of
      select="concat($idkey, ' => ', boolean($node))"/></xsl:message>
     <xsl:element name="{local-name(.)}">
