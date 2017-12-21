@@ -74,5 +74,8 @@
   </subscript>
 </xsl:template>
 
+<xsl:template match="keyword">
+ <xsl:value-of select="concat('[[[', @keyref, ']]]')"/>
+</xsl:template>
 
 </xsl:stylesheet>
