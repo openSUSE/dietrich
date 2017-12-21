@@ -214,6 +214,15 @@ xsltproc --novalid \
 
 wellformcheck "$mainfile"
 
+## Create entity file
+
+if [[ ! -f "$outputxmldir/$ENTITYFILE" ]] && [[ -f "$basedir/$ENTITYFILE" ]]; then
+  cp "$basedir/$ENTITYFILE" "$outputxmldir/$ENTITYFILE"
+else
+  touch "$outputxmldir/$ENTITYFILE"
+fi
+
+
 ## Find the source files in the ditamap
 sourcefiles="$(sed -n -r 's/^source-file:// p' $tmpdir/includes)"
 replacedfiles="$(sed -n -r 's/^source-file-replaced:// p' $tmpdir/includes)"
@@ -374,14 +383,6 @@ done
 for replacedfile in $replacedfiles; do
   cp "$basedir/$replacedfile" "$outputxmldir/$replacedfile"
 done
-
-## Create entity file
-
-if [[ ! -f "$outputxmldir/$ENTITYFILE" ]] && [[ -f "$basedir/$ENTITYFILE" ]]; then
-  cp "$basedir/$ENTITYFILE" "$outputxmldir/$ENTITYFILE"
-else
-  touch "$outputxmldir/$ENTITYFILE"
-fi
 
 ## Copy necessary images
 
