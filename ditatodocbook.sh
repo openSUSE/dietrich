@@ -120,15 +120,17 @@ fi
 # "Stop! Wellform Time."
 function wellformcheck() {
   # $1 - file to check
-  if [[ $WELLFORMSTOP ]]; then
+  # $2 - who/what is calling this?
+  if [[ $WELLFORMSTOP -eq 1 ]]; then
     initialrun=1
     unclean=0
-    while [[ $initialrun ]] || [[ $unclean -eq 1 ]]; do
-        xmllint --noent --noout "$1"
-        if [[ $(echo $?) -gt 0 ]]; then
-          [[ $initialrun ]] && echo "$1 is not well-formed (see message above). Fix the file manually."
-          echo -n "Finished fixing? Press Enter. Ignore issue in file? Press: i, Enter."
-          read $decision
+    while [[ $initialrun -eq 1 ]] || [[ $unclean -eq 1 ]]; do
+        xmllintrun=$(xmllint --noent --noout "$1" 2> /dev/stdout)
+        if [[ $xmllintrun ]]; then
+          [[ $verbose -eq 1 ]] && echo "(yno) wellformcheck - $2"
+          [[ $initialrun -eq 1 ]] && echo "(meh) $1 is not well-formed (see message above). Fix the file manually."
+          echo -e "$xmllintrun"
+          read -p "Finished fixing? Press Enter. Ignore issue in file? Press: i, Enter. " decision
           [[ "$decision" == 'i' ]] && break
           unclean=1
         else
@@ -200,7 +202,7 @@ fi
 
 ## From the ditamap, create a MAIN file.
 
-wellformcheck "$inputmap"
+wellformcheck "$inputmap" "before creating MAIN"
 
 mainfile="$outputxmldir/$mainname"
 # --novalid is necessary for the Fujitsu stuff since we seem to lack the right DTD
@@ -212,7 +214,7 @@ xsltproc --novalid \
   "$mydir/map-to-MAIN.xsl" \
   "$inputmap" > "$mainfile" 2> "$tmpdir/includes"
 
-wellformcheck "$mainfile"
+wellformcheck "$mainfile" "after creating MAIN"
 
 ## Create entity file
 
@@ -230,7 +232,7 @@ replacedfiles="$(sed -n -r 's/^source-file-replaced:// p' $tmpdir/includes)"
 # Include conrefs
 
 for sourcefile in $sourcefiles; do
-  wellformcheck "$basedir/$sourcefile"
+  wellformcheck "$basedir/$sourcefile" "before copying DITA to temporary directory"
 
   mkdir -p "$tmpdir/$(dirname $sourcefile)"
   cp "$basedir/$sourcefile" "$tmpdir/$sourcefile"
@@ -245,7 +247,7 @@ for sourcefile in $sourcefiles; do
       "$tmpdir/$sourcefile" > "$tmpdir/$sourcefile-0"
     mv "$tmpdir/$sourcefile-0" "$tmpdir/$sourcefile"
   done
-  wellformcheck "$tmpdir/$sourcefile"
+  wellformcheck "$tmpdir/$sourcefile" "after resolving conrefs in DITA"
 done
 
 
@@ -268,7 +270,7 @@ if [[ -f "$conkeyrefs" ]]; then
       "$mydir/resolve-conkeyref.xsl" \
       "$tmpdir/$sourcefile" > "$tmpdir/$sourcefile-0"
     mv "$tmpdir/$sourcefile-0" "$tmpdir/$sourcefile"
-    wellformcheck "$tmpdir/$sourcefile"
+    wellformcheck "$tmpdir/$sourcefile"  "after resolving conkeyrefs in DITA"
   done
 fi
 
@@ -286,7 +288,7 @@ for sourcefile in $sourcefiles; do
       "$mydir/create-unique-ids.xsl" \
       "$tmpdir/$sourcefile" > "$tmpdir/$sourcefile-0"
     mv "$tmpdir/$sourcefile-0" "$tmpdir/$sourcefile"
-  wellformcheck "$tmpdir/$sourcefile"
+  wellformcheck "$tmpdir/$sourcefile" "after creating unique IDs in DITA"
 done
 
 ## Actual conversion
@@ -306,7 +308,7 @@ for sourcefile in $sourcefiles; do
 
   # Also generate list of output files for later reuse
   outputfiles="$outputfiles $outputpath"
-  wellformcheck "$outputpath"
+  wellformcheck "$outputpath" "after conversion to DocBook"
 done
 
 ## Create a very basic DC file
@@ -338,7 +340,7 @@ for outputpath in $outputfiles; do
     "$outputpath" > "$outputpath.0"
   mv $outputpath.0 $outputpath
 
-  wellformcheck "$outputpath"
+  wellformcheck "$outputpath" "after clean-blocks"
 
   outputfile="$(basename $outputpath)"
   root=$(grep -m1 "^file:$outputfile,root:" $tmpdir/includes | sed -r 's_^.+,root:(.+)$_\1_')
@@ -354,7 +356,7 @@ for outputpath in $outputfiles; do
     "$outputpath" > "$outputpath.0" 2>> "$tmpdir/neededstuff"
   mv $outputpath.0 $outputpath
 
-  wellformcheck "$outputpath"
+  wellformcheck "$outputpath" "after clean-ids"
 
   # FIXME: Hello insanity! Thy name is workaround. We have up to three
   # namespaces, so run three times. This avoids having to use
@@ -375,7 +377,7 @@ for outputpath in $outputfiles; do
     > "$outputpath.0"
   mv $outputpath.0 $outputpath
 
-  wellformcheck "$outputpath"
+  wellformcheck "$outputpath" "after correcting xmlns"
 done
 
 ## Copy replaced files
