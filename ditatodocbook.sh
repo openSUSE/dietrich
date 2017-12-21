@@ -191,6 +191,31 @@ for sourcefile in $sourcefiles; do
   done
 done
 
+
+# Resolve conkeyref
+CONKEYREFS="HOS-conrefs.xml"
+# install_entryscale_kvm twosystems hw_support_hardwareconfig
+
+# Search for this file in different parent directories:
+for parent in "." ".." "../.."; do
+  if [[ -e $parent/$CONKEYREFS ]]; then
+    CONKEYREFS=$basedir/$parent/$CONKEYREFS
+    break
+  fi
+done
+
+echo "Using conkeyref file $CONKEYREFS"
+
+for sourcefile in $sourcefiles; do
+   echo ">> Resolving conkeyrefs for $sourcefile"
+   xsltproc \
+     --stringparam conrefs.file $CONKEYREFS \
+    "$mydir/resolve-conkeyref.xsl" \
+     "$tmpdir/$sourcefile" > "$tmpdir/$sourcefile-0"
+   mv "$tmpdir/$sourcefile-0" "$tmpdir/$sourcefile"
+done
+
+
 ## Modify the original DITA files to get rid of duplicate IDs.
 tempsourcefiles=$(echo $sourcefiles | sed -r "s,[^ ]+,$tmpdir/&,g")
 allids=$(xsltproc --stringparam 'name' 'id' $mydir/find.xsl $tempsourcefiles 2> /dev/null | sort)
