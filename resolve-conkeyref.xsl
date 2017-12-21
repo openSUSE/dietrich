@@ -24,16 +24,17 @@
   <xsl:choose>
    <!-- We assume filename without .xml is equal to its ID -->
    <xsl:when test="contains($conrefs.file, $preid)">
-    <xsl:message>Resolve conkeyref <xsl:value-of
-     select="concat($idkey, ' => ', boolean($node))"/></xsl:message>
+    <!-- This message might be a bit spammy. -->
+    <!-- <xsl:message>Resolve conkeyref <xsl:value-of
+     select="concat($idkey, ' => ', boolean($node))"/></xsl:message> -->
     <xsl:element name="{local-name(.)}">
      <xsl:apply-templates select="$node"/>
     </xsl:element>
    </xsl:when>
    <xsl:otherwise>
     <!-- We don't know it yet, so... -->
-    <xsl:processing-instruction name="suse-conkeyref"><xsl:value-of select="@conkeyref"/></xsl:processing-instruction>
-    <xsl:message>Unknown conkeyref ID=<xsl:value-of select="$preid"/> found</xsl:message>
+    <xsl:processing-instruction name="unconverted-conkeyref"> id="<xsl:value-of select="@conkeyref"/>" targetelement="<xsl:value-of select="local-name(.)"/>"</xsl:processing-instruction>
+    <xsl:message>Unknown conkeyref ID=<xsl:value-of select="@conkeyref"/> found. Check for &lt;?unconverted-conkeyref ...?&gt; in output files.</xsl:message>
     <xsl:copy-of select="."/>
    </xsl:otherwise>
   </xsl:choose>

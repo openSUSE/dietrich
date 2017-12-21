@@ -139,6 +139,19 @@ function wellformcheck() {
   fi
 }
 
+# FIXME: This search functions works around the limits of hard-coding. It
+# should be here temporarily only.
+function searchparents() {
+  # $1 - file name to search for
+  for parent in "." ".." "../.."; do
+    if [[ -f $parent/$1 ]]; then
+      echo $basedir/$parent/$1
+      break
+    fi
+  done
+  echo ""
+}
+
 ## Output (fix)
 outputxmldir="$outputdirabs/xml"
 outputimagedir="$outputdirabs/images/src"
@@ -227,30 +240,28 @@ for sourcefile in $sourcefiles; do
 done
 
 
-# Resolve conkeyref
-CONKEYREFS="HOS-conrefs.xml"
+# FIXME: hardcoded file names, to allow for converting Helion docs
+conkeyrefs_default="HOS-conrefs.xml"
+# other conkeyref files (unhandled, TODO):
 # install_entryscale_kvm twosystems hw_support_hardwareconfig
+keywords_default="HOS-keywords.xml"
 
-# Search for this file in different parent directories:
-for parent in "." ".." "../.."; do
-  if [[ -f $parent/$CONKEYREFS ]]; then
-    CONKEYREFS=$basedir/$parent/$CONKEYREFS
-    break
-  fi
-done
+# Resolve conkeyref
+conkeyrefs=$(searchparents "$conkeyrefs_default")
 
-echo "Using conkeyref file $CONKEYREFS"
+if [[ -f "$conkeyrefs" ]]; then
+  [[ $verbose -eq 1 ]] && echo "Using conkeyref file $CONKEYREFS"
 
-for sourcefile in $sourcefiles; do
-   echo ">> Resolving conkeyrefs for $sourcefile"
-   xsltproc \
-     --stringparam conrefs.file $CONKEYREFS \
-    "$mydir/resolve-conkeyref.xsl" \
-     "$tmpdir/$sourcefile" > "$tmpdir/$sourcefile-0"
-   mv "$tmpdir/$sourcefile-0" "$tmpdir/$sourcefile"
-  wellformcheck "$tmpdir/$sourcefile"
-done
-
+  for sourcefile in $sourcefiles; do
+    [[ $verbose -eq 1 ]] && echo "Resolving conkeyrefs for $sourcefile"
+    xsltproc \
+      --stringparam conrefs.file $conkeyrefs \
+      "$mydir/resolve-conkeyref.xsl" \
+      "$tmpdir/$sourcefile" > "$tmpdir/$sourcefile-0"
+    mv "$tmpdir/$sourcefile-0" "$tmpdir/$sourcefile"
+    wellformcheck "$tmpdir/$sourcefile"
+  done
+fi
 
 
 ## Modify the original DITA files to get rid of duplicate IDs.
@@ -393,26 +404,15 @@ for image in $imagesneeded; do
 done
 
 # Append keydef into entity file
-
-KEYWORDS="HOS-keywords.xml"
-# install_entryscale_kvm twosystems hw_support_hardwareconfig
-
 # Search for this file in different parent directories:
-for parent in "." ".." "../.."; do
-  if [[ -f $parent/$KEYWORDS ]]; then
-    KEYWORDS=$basedir/$parent/$KEYWORDS
-    break
-  fi
-done
+keywords=$(searchparents "$keywords_default")
 
-if [[ -f $KEYWORDS ]]; then
-    echo "Using keywords file $KEYWORDS"
+if [[ -f "$keywords" ]]; then
+    [[ $verbose -eq 1 ]] && echo "Using keywords file $KEYWORDS"
 
     xsltproc -o $tmpdir/$ENTITYFILE \
         "$mydir/keyword2entity.xsl" $KEYWORDS
     cat $tmpdir/$ENTITYFILE >> $outputxmldir/$ENTITYFILE
-else
-    echo "WARNING: Cannot find the file $KEYWORDS"
 fi
 
 daps -d "$dcfile" xmlformat > /dev/null
