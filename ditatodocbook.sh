@@ -198,7 +198,7 @@ CONKEYREFS="HOS-conrefs.xml"
 
 # Search for this file in different parent directories:
 for parent in "." ".." "../.."; do
-  if [[ -e $parent/$CONKEYREFS ]]; then
+  if [[ -f $parent/$CONKEYREFS ]]; then
     CONKEYREFS=$basedir/$parent/$CONKEYREFS
     break
   fi
@@ -354,13 +354,13 @@ KEYWORDS="HOS-keywords.xml"
 
 # Search for this file in different parent directories:
 for parent in "." ".." "../.."; do
-  if [[ -e $parent/$KEYWORDS ]]; then
+  if [[ -f $parent/$KEYWORDS ]]; then
     KEYWORDS=$basedir/$parent/$KEYWORDS
     break
   fi
 done
 
-if [[ -e $KEYWORDS ]]; then
+if [[ -f $KEYWORDS ]]; then
     echo "Using keywords file $KEYWORDS"
 
     xsltproc -o $tmpdir/$ENTITYFILE \
