@@ -142,9 +142,8 @@ tmpdir=$(mktemp -d -p '/tmp' -t 'db-convert-XXXXXXX')
 mkdir -p "$outputxmldir"
 
 echo ""
-if [[ ! $CLEANTEMP == 0 ]]; then
-  rm -r $tmpdir
-else
+
+if [[ $CLEANTEMP == 0 ]]; then
   echo "Temporary directory: $tmpdir"
 fi
 
@@ -318,3 +317,7 @@ daps -d "$dcfile" optipng > /dev/null
 
 echo ""
 echo "Output directory:    $outputdirabs"
+
+if [[ ! $CLEANTEMP == 0 ]]; then
+  rm -r $tmpdir
+fi
