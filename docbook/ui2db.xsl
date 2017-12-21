@@ -1,10 +1,16 @@
 <?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE xsl:stylesheet
+[
+  <!ENTITY dbns "http://docbook.org/ns/docbook">
+]>
+
 <!-- This file is part of the DITA Open Toolkit project hosted on 
   Sourceforge.net. See the accompanying license.txt file for 
   applicable licenses.-->
 <!-- (c) Copyright IBM Corp. 2004, 2005 All Rights Reserved. -->
 
-<xsl:stylesheet version="2.0" 
+<xsl:stylesheet version="2.0"
+                xmlns="&dbns;"
                 xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 
 <!-- to do: attributes -->

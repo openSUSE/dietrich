@@ -1,4 +1,15 @@
-<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
+<!DOCTYPE xsl:stylesheet
+[
+  <!ENTITY dbns "http://docbook.org/ns/docbook">
+]>
+
+<xsl:stylesheet version="1.0"
+ xmlns="&dbns;"
+ xmlns:d="&dbns;"
+ xmlns:xi="http://www.w3.org/2001/XInclude"
+ xmlns:xlink="http://www.w3.org/1999/xlink"
+ xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+ exclude-result-prefixes="d">
   <xsl:output method="xml"/>
 
   <xsl:include href="paths.xsl"/>
@@ -26,10 +37,9 @@
     <xsl:apply-templates select="node()[normalize-space()][1][self::processing-instruction()]"/>
     <xsl:text disable-output-escaping="yes">&lt;!DOCTYPE </xsl:text>
     <xsl:value-of select="$actual-root"/>
-    <xsl:text disable-output-escaping="yes"> PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd"</xsl:text>
-    <xsl:text disable-output-escaping="yes"> [ &lt;!ENTITY % entities SYSTEM "</xsl:text>
+    <xsl:text disable-output-escaping="yes"> [&#10; &lt;!ENTITY % entities SYSTEM "</xsl:text>
     <xsl:value-of select="$entityfile"/>
-    <xsl:text disable-output-escaping="yes">"&gt; %entities; ]&gt;</xsl:text>
+    <xsl:text disable-output-escaping="yes">"&gt; %entities;&#10;]&gt;&#10;</xsl:text>
     <xsl:apply-templates select="@*|node()"/>
   </xsl:template>
 
@@ -39,8 +49,10 @@
     </xsl:copy>
   </xsl:template>
 
+<!--  <xsl:template match="*[not(/*)]/@*[starts-with(name(self::@*),'xmlns')]"/>-->
+
   <xsl:template match="/*">
-    <xsl:element name="{$actual-root}">
+    <xsl:element name="{$actual-root}" namespace="&dbns;">
       <xsl:apply-templates select="@*|node()"/>
       <xsl:if test="string-length($includes) &gt; 0">
         <xsl:call-template name="generate-imports">
@@ -61,7 +73,7 @@
   <xsl:template name="generate-imports">
     <xsl:param name="input" select="','"/>
     <xsl:variable name="file" select="substring-before($input, ',')"/>
-    <xi:include href="{$file}" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="{$file}"/>
     <xsl:if test="string-length(substring-after($input, ',')) &gt; 0">
       <xsl:call-template name="generate-imports">
         <xsl:with-param name="input" select="substring-after($input, ',')"/>
@@ -71,12 +83,12 @@
 
   <xsl:template
     match="@remap|@*[. = '']|@moreinfo[. = 'none']|@inheritnum[. = 'ignore']|
-           @float|@continuation[. ='restarts']|emphasis/@role[. = 'italic']|@frame"/>
+           @float|@continuation[. ='restarts']|d:emphasis/@role[. = 'italic']|@frame"/>
 
   <!-- We get a list of linkends, all IDs that are not part of that list are
   removed here. If we don't get anything (not even a space), we don't do
   anything. -->
-  <xsl:template match="@id|@xml:id">
+  <xsl:template match="@xml:id">
     <xsl:if test="contains($linkends, concat(' ', self::node(), ' ')) or
                   string-length($linkends) = 0">
       <xsl:attribute name="{name(.)}"><xsl:apply-templates/></xsl:attribute>
@@ -84,11 +96,11 @@
   </xsl:template>
 
   <!-- Always remove IDs from phrases, however. Those are just annoying. -->
-  <xsl:template match="phrase/@id|phrase/@xml:id"/>
+  <xsl:template match="d:phrase/@xml:id"/>
 
   <!-- Rewrite paths to images, because DAPS needs images to be in a defined
   place. -->
-  <xsl:template match="imagedata/@fileref">
+  <xsl:template match="d:imagedata/@fileref">
     <xsl:param name="mode" select="''"/>
     <xsl:variable name="prefixpath-candidate">
       <!-- Sooo, let's try to check whether there is either an
@@ -133,24 +145,24 @@
    * HTML: sidebar titles are generated wrongly
    => fix the symptom here and just generate bridgeheads
   -->
-  <xsl:template match="sidebar">
+  <xsl:template match="d:sidebar">
     <xsl:apply-templates/>
   </xsl:template>
-  <xsl:template match="sidebar/title">
+  <xsl:template match="d:sidebar/d:title">
     <bridgehead renderas="sect4"><xsl:apply-templates/></bridgehead>
   </xsl:template>
 
-  <xsl:template match="literal/emphasis">
+  <xsl:template match="d:literal/d:emphasis">
     <replaceable><xsl:apply-templates/></replaceable>
   </xsl:template>
 
-  <xsl:template match="literal/phrase">
+  <xsl:template match="d:literal/d:phrase">
     <xsl:apply-templates/>
   </xsl:template>
 
   <!-- Fight the weird habit of people putting underline/italic emphases into
   ulinks. -->
-  <xsl:template match="emphasis[ancestor::ulink]">
+  <xsl:template match="d:emphasis[ancestor::d:ulink]">
     <xsl:choose>
       <xsl:when test="contains($tweaks, ' fujitsu ')">
         <!-- FIXME: For reasons unknown to me, adding @*| to the
@@ -165,23 +177,23 @@
     </xsl:choose>
   </xsl:template>
 
-  <xsl:template match="inlinemediaobject[not(ancestor::para or ancestor::title or ancestor::remark or ancestor::entry)]">
+  <xsl:template match="d:inlinemediaobject[not(ancestor::d:para or ancestor::d:title or ancestor::d:remark or ancestor::d:entry)]">
     <mediaobject><xsl:apply-templates/></mediaobject>
   </xsl:template>
 
-  <xsl:template match="imageobject[1]">
+  <xsl:template match="d:imageobject[1]">
     <xsl:variable name="width">
       <xsl:choose>
         <!-- Crudely try to avoid absolute values here. -->
         <!-- FIXME: This does not check for SNAFUs like 100%+ values. -->
-        <xsl:when test="contains(imagedata[1]/@width, '%')">
-          <xsl:value-of select="imagedata[1]/@width"/>
+        <xsl:when test="contains(d:imagedata[1]/@width, '%')">
+          <xsl:value-of select="d:imagedata[1]/@width"/>
         </xsl:when>
         <xsl:otherwise>75%</xsl:otherwise>
       </xsl:choose>
     </xsl:variable>
     <xsl:variable name="fileref">
-      <xsl:apply-templates select="imagedata[1]/@fileref">
+      <xsl:apply-templates select="d:imagedata[1]/@fileref">
         <xsl:with-param name="mode" select="'bare'"/>
       </xsl:apply-templates>
     </xsl:variable>
@@ -200,18 +212,18 @@
   </xsl:template>
 
   <!-- FIXME: I can't handle this shit. (yet) -->
-  <xsl:template match="imageobject[not(1)]"/>
+  <xsl:template match="d:imageobject[not(1)]"/>
 
-  <xsl:template match="programlisting">
+  <xsl:template match="d:programlisting">
     <screen><xsl:apply-templates/></screen>
   </xsl:template>
 
-  <xsl:template match="xref[@linkend='']">
+  <xsl:template match="d:xref[@linkend='']">
     <citetitle>FIXME: broken external xref</citetitle>
   </xsl:template>
 
   <!-- Remarks ... this conversion based on the text content is pretty scary. -->
-  <xsl:template match="emphasis[emphasis[@role='bold'][translate(., 'abcdefghijklmnoprstuvwxyz-_+:.?! ', 'ABCDEFGHIJKLMNOPRSTUVWXYZ') = 'PENDING']]">
+  <xsl:template match="d:emphasis[d:emphasis[@role='bold'][translate(., 'abcdefghijklmnoprstuvwxyz-_+:.?! ', 'ABCDEFGHIJKLMNOPRSTUVWXYZ') = 'PENDING']]">
     <xsl:choose>
       <xsl:when test="contains($tweaks, ' fujitsu ')">
         <xsl:message>WARNING: b/i converted to remark.</xsl:message>
