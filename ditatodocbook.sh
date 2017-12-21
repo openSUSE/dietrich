@@ -16,6 +16,9 @@
 #     + TEMPDIR: Set a fixed directory for temporary files.
 #         (default: random directory under /tmp/)
 #     + CLEANID: Remove IDs that are not used as linkends. (default: 1)
+#     + WELLFORMSTOP: Stop when any XML file is detected as not being
+#       well-formed, so an author can manually fix it before continuing.
+#       (default: 0)
 #     + TWEAK: Space-separated list of vendor tweaks to apply.
 #         (default: [none], available:
 #           "fujitsu" - convert emphases starting with "PENDING:" to <remark/>s,
@@ -85,6 +88,7 @@ OUTPUTDIR="converted/$inputbasename"
 STYLEROOT=""
 CLEANTEMP=1
 TEMPDIR=""
+WELLFORMSTOP=0
 CLEANID=0
 TWEAK=""
 ENTITYFILE="entities.ent"
@@ -110,6 +114,30 @@ outputdirabs="$basedir/$OUTPUTDIR"
 if [[ $OUTPUTDIR = /* ]]; then
   outputdirabs="$OUTPUTDIR"
 fi
+
+# FUNCTIONS
+
+# "Stop! Wellform Time."
+function wellformcheck() {
+  # $1 - file to check
+  if [[ $WELLFORMSTOP ]]; then
+    initialrun=1
+    unclean=0
+    while [[ $initialrun ]] || [[ $unclean -eq 1 ]]; do
+        xmllint --noent --noout "$1"
+        if [[ $(echo $?) -gt 0 ]]; then
+          [[ $initialrun ]] && echo "$1 is not well-formed (see message above). Fix the file manually."
+          echo -n "Finished fixing? Press Enter. Ignore issue in file? Press: i, Enter."
+          read $decision
+          [[ "$decision" == 'i' ]] && break
+          unclean=1
+        else
+          break
+        fi
+        initialrun=0
+    done
+  fi
+}
 
 ## Output (fix)
 outputxmldir="$outputdirabs/xml"
@@ -159,6 +187,8 @@ fi
 
 ## From the ditamap, create a MAIN file.
 
+wellformcheck "$inputmap"
+
 mainfile="$outputxmldir/$mainname"
 # --novalid is necessary for the Fujitsu stuff since we seem to lack the right DTD
 xsltproc --novalid \
@@ -169,6 +199,8 @@ xsltproc --novalid \
   "$mydir/map-to-MAIN.xsl" \
   "$inputmap" > "$mainfile" 2> "$tmpdir/includes"
 
+wellformcheck "$mainfile"
+
 ## Find the source files in the ditamap
 sourcefiles="$(sed -n -r 's/^source-file:// p' $tmpdir/includes)"
 replacedfiles="$(sed -n -r 's/^source-file-replaced:// p' $tmpdir/includes)"
@@ -176,6 +208,8 @@ replacedfiles="$(sed -n -r 's/^source-file-replaced:// p' $tmpdir/includes)"
 # Include conrefs
 
 for sourcefile in $sourcefiles; do
+  wellformcheck "$basedir/$sourcefile"
+
   mkdir -p "$tmpdir/$(dirname $sourcefile)"
   cp "$basedir/$sourcefile" "$tmpdir/$sourcefile"
 
@@ -189,6 +223,7 @@ for sourcefile in $sourcefiles; do
       "$tmpdir/$sourcefile" > "$tmpdir/$sourcefile-0"
     mv "$tmpdir/$sourcefile-0" "$tmpdir/$sourcefile"
   done
+  wellformcheck "$tmpdir/$sourcefile"
 done
 
 
@@ -213,7 +248,9 @@ for sourcefile in $sourcefiles; do
     "$mydir/resolve-conkeyref.xsl" \
      "$tmpdir/$sourcefile" > "$tmpdir/$sourcefile-0"
    mv "$tmpdir/$sourcefile-0" "$tmpdir/$sourcefile"
+  wellformcheck "$tmpdir/$sourcefile"
 done
+
 
 
 ## Modify the original DITA files to get rid of duplicate IDs.
@@ -229,6 +266,7 @@ for sourcefile in $sourcefiles; do
       "$mydir/create-unique-ids.xsl" \
       "$tmpdir/$sourcefile" > "$tmpdir/$sourcefile-0"
     mv "$tmpdir/$sourcefile-0" "$tmpdir/$sourcefile"
+  wellformcheck "$tmpdir/$sourcefile"
 done
 
 ## Actual conversion
@@ -248,6 +286,7 @@ for sourcefile in $sourcefiles; do
 
   # Also generate list of output files for later reuse
   outputfiles="$outputfiles $outputpath"
+  wellformcheck "$outputpath"
 done
 
 ## Create a very basic DC file
@@ -279,6 +318,8 @@ for outputpath in $outputfiles; do
     "$outputpath" > "$outputpath.0"
   mv $outputpath.0 $outputpath
 
+  wellformcheck "$outputpath"
+
   outputfile="$(basename $outputpath)"
   root=$(grep -m1 "^file:$outputfile,root:" $tmpdir/includes | sed -r 's_^.+,root:(.+)$_\1_')
   includes=$(grep -P "^append-to:$outputfile,generate-include:" $tmpdir/includes | sed -r 's_^.+,generate-include:(.+)$_\1_' | tr '\n' ',')
@@ -292,6 +333,8 @@ for outputpath in $outputfiles; do
     "$mydir/clean-ids.xsl" \
     "$outputpath" > "$outputpath.0" 2>> "$tmpdir/neededstuff"
   mv $outputpath.0 $outputpath
+
+  wellformcheck "$outputpath"
 
   # FIXME: Hello insanity! Thy name is workaround. We have up to three
   # namespaces, so run three times. This avoids having to use
@@ -311,6 +354,8 @@ for outputpath in $outputfiles; do
     -e 's/(<[^>]+)  +([^>]+>)/\1 \2/g' \
     > "$outputpath.0"
   mv $outputpath.0 $outputpath
+
+  wellformcheck "$outputpath"
 done
 
 ## Copy replaced files
