@@ -347,6 +347,29 @@ for image in $imagesneeded; do
   fi
 done
 
+# Append keydef into entity file
+
+KEYWORDS="HOS-keywords.xml"
+# install_entryscale_kvm twosystems hw_support_hardwareconfig
+
+# Search for this file in different parent directories:
+for parent in "." ".." "../.."; do
+  if [[ -e $parent/$KEYWORDS ]]; then
+    KEYWORDS=$basedir/$parent/$KEYWORDS
+    break
+  fi
+done
+
+if [[ -e $KEYWORDS ]]; then
+    echo "Using keywords file $KEYWORDS"
+
+    xsltproc -o $tmpdir/$ENTITYFILE \
+        "$mydir/keyword2entity.xsl" $KEYWORDS
+    cat $tmpdir/$ENTITYFILE >> $outputxmldir/$ENTITYFILE
+else
+    echo "WARNING: Cannot find the file $KEYWORDS"
+fi
+
 daps -d "$dcfile" xmlformat > /dev/null
 daps -d "$dcfile" optipng > /dev/null
 
