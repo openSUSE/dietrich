@@ -32,6 +32,7 @@
    </xsl:when>
    <xsl:otherwise>
     <!-- We don't know it yet, so... -->
+    <xsl:processing-instruction name="suse-conkeyref"><xsl:value-of select="@conkeyref"/></xsl:processing-instruction>
     <xsl:message>Unknown conkeyref ID=<xsl:value-of select="$preid"/> found</xsl:message>
     <xsl:copy-of select="."/>
    </xsl:otherwise>
