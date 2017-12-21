@@ -13,6 +13,8 @@
 #         (default: [DITAMAP's_DIR]/converted/[DITAMAP's_NAME])
 #     + STYLEROOT: Style root to write into the DC file. (default: [none])
 #     + CLEANTEMP: Delete temporary directory after conversion. (default: 1)
+#     + TEMPDIR: Set a fixed directory for temporary files.
+#         (default: random directory under /tmp/)
 #     + CLEANID: Remove IDs that are not used as linkends. (default: 1)
 #     + TWEAK: Space-separated list of vendor tweaks to apply.
 #         (default: [none], available:
@@ -82,6 +84,7 @@ inputbasename="$(basename $1 | sed -r 's/.ditamap$//')"
 OUTPUTDIR="converted/$inputbasename"
 STYLEROOT=""
 CLEANTEMP=1
+TEMPDIR=""
 CLEANID=0
 TWEAK=""
 ENTITYFILE="entities.ent"
@@ -138,7 +141,14 @@ if [[ $replacementnotfound == 1 ]]; then
 fi
 
 ## Create temporary/output dirs
-tmpdir=$(mktemp -d -p '/tmp' -t 'db-convert-XXXXXXX')
+if [[ ! $TEMPDIR ]]; then
+  tmpdir=$(mktemp -d -p '/tmp' -t 'db-convert-XXXXXXX')
+else
+  rm -rf "$TEMPDIR/*" 2> /dev/null
+  mkdir -p "$TEMPDIR"
+  tmpdir="$TEMPDIR"
+fi
+
 mkdir -p "$outputxmldir"
 
 echo ""
