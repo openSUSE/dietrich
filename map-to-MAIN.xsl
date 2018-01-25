@@ -15,7 +15,7 @@
   <xsl:param name="remove" select="''"/>
 
   <xsl:template match="/">
-    <xsl:processing-instruction name="xsl-stylesheet">href="urn:x-suse:xslt:profiling:docbook51-profile.xsl"
+    <xsl:processing-instruction name="xml-stylesheet">href="urn:x-suse:xslt:profiling:docbook51-profile.xsl"
  type="text/xml"
  title="Profiling step"</xsl:processing-instruction>
     <xsl:text disable-output-escaping="yes">&#10;&lt;!DOCTYPE </xsl:text>
