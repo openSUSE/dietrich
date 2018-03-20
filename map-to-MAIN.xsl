@@ -151,6 +151,17 @@
 
   <xsl:template name="mangle-filename">
     <xsl:param name="input" select="'NOINPUT'"/>
+    <xsl:param name="input-candidate0" select="concat($input,'⁋')"/>
+    <xsl:param name="input-candidate1">
+      <xsl:choose>
+        <xsl:when test="contains($input-candidate0,'.dita⁋')">
+          <xsl:value-of select="concat(substring-before($input-candidate0, '.dita⁋'), '.xml')"/>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:value-of select="substring-before($input-candidate0, '⁋')"/>
+        </xsl:otherwise>
+      </xsl:choose>
+    </xsl:param>
     <xsl:value-of select="concat($prefix, '-', translate($input,'/,_ ','---'))"/>
   </xsl:template>
 

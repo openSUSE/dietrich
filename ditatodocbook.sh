@@ -299,7 +299,7 @@ for sourcefile in $sourcefiles; do
   # these files then overwrite each other, we might run into issue because
   # they might include wrong XIncludes (which we might not even notice) or
   # wrong root elements (which we are more likely to notice)
-  outputfile="${inputbasename}-$(echo $sourcefile | sed -r 's_[/, ]_-_g')"
+  outputfile="${inputbasename}-$(echo $sourcefile | sed -r -e 's_[/, ]_-_g' -e 's/\.dita$/.xml/')"
   outputpath="$outputxmldir/$outputfile"
   xsltproc \
     "$mydir/dita2docbook_template.xsl" \
