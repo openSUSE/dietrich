@@ -214,6 +214,8 @@ xsltproc --novalid \
   "$mydir/map-to-MAIN.xsl" \
   "$inputmap" > "$mainfile" 2> "$tmpdir/includes"
 
+[[ $verbose -eq 1 ]] && echo -e "INCLUDES\n\n$tmpdir/includes\n"
+
 wellformcheck "$mainfile" "after creating MAIN"
 
 ## Create entity file
@@ -379,6 +381,8 @@ for outputpath in $outputfiles; do
 
   wellformcheck "$outputpath" "after correcting xmlns"
 done
+
+[[ $verbose -eq 1 ]] && echo -e "FILES WE NEED (IMAGES, ETC.)\n\n$tmpdir/neededstuff\n"
 
 ## Copy replaced files
 

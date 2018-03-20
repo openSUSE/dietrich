@@ -132,7 +132,7 @@
           <xsl:when test="ancestor::*[@href]">
             <xsl:variable name="parentfile">
               <xsl:call-template name="mangle-filename">
-               <xsl:with-param name="input" select="ancestor::*[1]/@href"/>
+                <xsl:with-param name="input" select="ancestor::*[1]/@href"/>
               </xsl:call-template>
             </xsl:variable>
             <xsl:message>append-to:<xsl:value-of select="$parentfile"/>,generate-include:<xsl:value-of select="$file"/></xsl:message>
