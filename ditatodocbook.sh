@@ -200,9 +200,20 @@ if [[ $CLEANTEMP == 0 ]]; then
   echo "Temporary directory: $tmpdir"
 fi
 
+
+## Create entity file
+
+if [[ ! -f "$outputxmldir/$ENTITYFILE" ]] && [[ -f "$basedir/$ENTITYFILE" ]]; then
+  cp "$basedir/$ENTITYFILE" "$outputxmldir/$ENTITYFILE"
+else
+  touch "$outputxmldir/$ENTITYFILE"
+fi
+
+
 ## From the ditamap, create a MAIN file.
 
 wellformcheck "$inputmap" "before creating MAIN"
+
 
 mainfile="$outputxmldir/$mainname"
 # --novalid is necessary for the Fujitsu stuff since we seem to lack the right DTD
@@ -217,15 +228,6 @@ xsltproc --novalid \
 [[ $verbose -eq 1 ]] && echo -e "INCLUDES\n\n$tmpdir/includes\n"
 
 wellformcheck "$mainfile" "after creating MAIN"
-
-## Create entity file
-
-if [[ ! -f "$outputxmldir/$ENTITYFILE" ]] && [[ -f "$basedir/$ENTITYFILE" ]]; then
-  cp "$basedir/$ENTITYFILE" "$outputxmldir/$ENTITYFILE"
-else
-  touch "$outputxmldir/$ENTITYFILE"
-fi
-
 
 ## Find the source files in the ditamap
 sourcefiles="$(sed -n -r 's/^source-file:// p' $tmpdir/includes)"
