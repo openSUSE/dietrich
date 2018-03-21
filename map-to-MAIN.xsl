@@ -91,6 +91,9 @@
     </productnumber>
   </xsl:template> -->
 
+  <!-- FIXME: Add proper handling for these. -->
+  <xsl:template match="*[@href][@processing-role='resource-only']" priority="50"/>
+
   <!-- XIncludes directly in MAIN. -->
   <xsl:template match="*[@href]">
     <xsl:variable name="file">
