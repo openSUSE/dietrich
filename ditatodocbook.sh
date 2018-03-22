@@ -50,6 +50,8 @@
 #     + CLEANTEMP: Delete temporary directory after conversion. (default: 1)
 #     + TEMPDIR: Set a fixed directory for temporary files.
 #         (default: random directory under /tmp/)
+#     + WAITONLOG: Wait for input after every log message. Very annoying but
+#         can be helpful for debugging. (default: 0)
 
 #
 # Package Dependencies on openSUSE:
@@ -92,6 +94,7 @@ TEMPDIR=""
 CLEANID=0
 TWEAK=""
 ENTITYFILE="entities.ent"
+WAITONLOG=0
 
 # --
 
@@ -101,6 +104,7 @@ function log() {
   xp=''
   [[ $2 -eq 1 ]] && xp='n'
   [[ $verbose -eq 1 ]] && >&2 echo -e${xp} "$1"
+  [[ $WAITONLOG -eq 1 ]] && read x
 }
 
 function logdone() {
@@ -184,6 +188,7 @@ function findincludes() {
 
 function resolveconrefs() {
   log "Resolving conrefs in" 1
+
   for sourcefile in $sourcefiles; do
     log " $sourcefile" 1
     mkdir -p "$tmpdir/$(dirname $sourcefile)"
@@ -250,6 +255,8 @@ function dedupeids() {
   allids=$(xsltproc --stringparam 'name' 'id' $mydir/find.xsl $tempsourcefiles 2> /dev/null | sort)
   nonuniqueids=$(echo -e "$allids" | uniq -d | tr '\n' ' ')
 
+  log "Deduplicating IDs" 1
+
   for sourcefile in $sourcefiles; do
       xsltproc \
         --stringparam "nonuniqueids" "$nonuniqueids"\
@@ -259,10 +266,15 @@ function dedupeids() {
         "$tmpdir/$sourcefile" > "$tmpdir/$sourcefile.0"
       mv0 "$tmpdir/$sourcefile"
   done
+
+  logdone
 }
 
 function converttodocbook() {
+  log "Converting to DocBook" 1
+
   for sourcefile in $sourcefiles; do
+    log " $sourcefile" 1
     # We need the name of the ditamap in here, because you might want to
     # generate DocBook files for multiple ditamaps into the same directory, if
     # these files then overwrite each other, we might run into issue because
@@ -278,6 +290,8 @@ function converttodocbook() {
     # Also generate list of output files for later reuse
     outputfiles="$outputfiles $outputpath"
   done
+
+  logdone
 }
 
 function createdc() {
@@ -299,10 +313,13 @@ function cleanupdocbook() {
 
     log " $outputpath" 1
 
+    log "(cleaning blocks" 1
     cleanblocks
 
+    log "/IDs & elements" 1
     cleanelements
 
+    log "/namespaces)" 1
     cleanns
 
   done
