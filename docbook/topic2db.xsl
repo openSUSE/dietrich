@@ -685,7 +685,8 @@
    - ADMONITION / PERIL BLOCKS
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
 <xsl:template match="*[contains(@class,' topic/note ') and
-      (@type='attention' or @type='important' or @type='restriction')]">
+  (@type='attention' or @type='important' or @type='restriction')]"
+  priority="1">
   <important>
     <xsl:call-template name="setStandardAttr">
       <xsl:with-param name="IDPrefix" select="'important'"/>
@@ -695,7 +696,7 @@
 </xsl:template>
 
 <xsl:template match="*[contains(@class,' topic/note ') and
-      (@type='caution' or @type='remember')]">
+  (@type='caution' or @type='remember')]" priority="1">
   <caution>
     <xsl:call-template name="setStandardAttr">
       <xsl:with-param name="IDPrefix" select="'caution'"/>
@@ -704,7 +705,8 @@
   </caution>
 </xsl:template>
 
-<xsl:template match="*[contains(@class,' topic/note ') and @type='danger']">
+<xsl:template match="*[contains(@class,' topic/note ') and
+  (@type='danger' or @type='warning')]" priority="1">
   <warning>
     <xsl:call-template name="setStandardAttr">
       <xsl:with-param name="IDPrefix" select="'warning'"/>
@@ -714,7 +716,7 @@
 </xsl:template>
 
 <xsl:template match="*[contains(@class,' topic/note ') and
-      (@type='tip' or @type='fastpath')]">
+  (@type='tip' or @type='fastpath')]" priority="1">
   <tip>
     <xsl:call-template name="setStandardAttr">
       <xsl:with-param name="IDPrefix" select="'warning'"/>
@@ -723,11 +725,14 @@
   </tip>
 </xsl:template>
 
-<xsl:template match="*[contains(@class,' topic/note ') and not(@type)]">
+<xsl:template match="*[contains(@class,' topic/note ')]" priority="-1">
   <note>
     <xsl:call-template name="setStandardAttr">
       <xsl:with-param name="IDPrefix" select="'note'"/>
     </xsl:call-template>
+    <xsl:if test="@type">
+      <xsl:comment>Original DITA note had unknown type <xsl:value-of select="@type"/>.</xsl:comment>
+    </xsl:if>
     <xsl:if test="@title">
       <title>
         <xsl:value-of select="@title"/>
