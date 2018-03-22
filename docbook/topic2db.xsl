@@ -1520,7 +1520,11 @@ DATA-TYPE PHRASES: date time currency char num bin oct dec hex ???
   <xsl:choose>
   <xsl:when test="$hasBlocks=1">
     <xsl:choose>
-    <xsl:when test="$isContReq or $titleNode">
+    <!-- Let's try to convert section->sidebar in all cases, hence 1=1 which
+    is always true. At this point, I don't really care whether I am
+    generating valid DocBook, clean-ids.xsl should hopefully fix it in the
+    end. -->
+    <xsl:when test="$isContReq or $titleNode or 1=1">
      <xsl:choose>
       <xsl:when test="count(*[not(contains(@class,$titleSpec))]) =
           count(*[contains(@class,' topic/qalist ')])">
