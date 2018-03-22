@@ -8,23 +8,21 @@
 #   * Add a file called conversion.conf to the directory of your DITAMAP
 #   * The configuration file will be sourced by the script
 #   * Recognized options:
+#     + CLEANID: Remove IDs that are not used as linkends. (default: 1)
+#     + ENTITYFILE: File name (not path!) of an external file that will be
+#         included with all XML files. To reuse an existing file, it has to
+#         exist below [OUTPUTDIR]/xml, if it does not, an empty file will be
+#         created. (default: "entities.ent")
 #     + OUTPUTDIR: The directory to place output in. Can but does not have to
 #         exist. Existing files will be overwritten mercilessly.
 #         (default: [DITAMAP's_DIR]/converted/[DITAMAP's_NAME])
 #     + STYLEROOT: Style root to write into the DC file. (default: [none])
-#     + CLEANTEMP: Delete temporary directory after conversion. (default: 1)
-#     + TEMPDIR: Set a fixed directory for temporary files.
-#         (default: random directory under /tmp/)
-#     + CLEANID: Remove IDs that are not used as linkends. (default: 1)
 #     + TWEAK: Space-separated list of vendor tweaks to apply.
 #         (default: [none], available:
 #           "fujitsu" - convert emphases starting with "PENDING:" to <remark/>s,
 #              remove emphases from link text
 #         )
-#     + ENTITYFILE: File name (not path!) of an external file that will be
-#         included with all XML files. To reuse an existing file, it has to
-#         exist below [OUTPUTDIR]/xml, if it does not, an empty file will be
-#         created. (default: "entities.ent")
+#
 #     + [DITAMAP]_DC: Name of output DC file.
 #         (default: DC-[DITAMAP's_NAME])
 #     + [DITAMAP]_MAIN: Name of output main file.
@@ -47,6 +45,11 @@
 #         (default: [none], syntax:
 #           "relative/path/old.xml relative/path/old2.xml ..."
 #         )
+#
+# Developer Configuration:
+#     + CLEANTEMP: Delete temporary directory after conversion. (default: 1)
+#     + TEMPDIR: Set a fixed directory for temporary files.
+#         (default: random directory under /tmp/)
 
 #
 # Package Dependencies on openSUSE:
