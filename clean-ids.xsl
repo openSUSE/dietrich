@@ -144,8 +144,8 @@
    * PDF: multi-page sidebars have generally destroyed rendering
    * HTML: sidebar titles are generated wrongly
    => fix the symptom here and generate sections or nothing
-  -->
-  <!-- nice sections - these have a title. -->
+  --><!--
+  <!-/- nice sections - these have a title. -/->
   <xsl:template match="d:sidebar[d:title]" priority="2">
     <section>
       <xsl:apply-templates select="@*|node()"/>
@@ -153,9 +153,9 @@
     <xsl:comment>fuckwhat? tpl=1</xsl:comment>
   </xsl:template>
 
-  <!-- less nice sections - these have a title but it is tagged with an
-  <emphasis role=bold> or similar. -->
-  <!--  and normalize-space(text()) = '' and  and not(*[2]) -->
+  <!-/- less nice sections - these have a title but it is tagged with an
+  <emphasis role=bold> or similar. -/->
+  <!-/-  and normalize-space(text()) = '' and  and not(*[2]) -/->
   <xsl:template match="d:sidebar[*[1][ self::d:para and *[1][d:emphasis] ]]"
   priority="1">
     <xsl:variable name="node" select="."/>
@@ -167,12 +167,12 @@
     <xsl:comment>fuckwhat? tpl=2</xsl:comment>
   </xsl:template>
 
-  <!-- ugly sections - these don't have a title but might still be needed for
-  structural integrity of the document. -->
+  <!-/- ugly sections - these don't have a title but might still be needed for
+  structural integrity of the document. -/->
   <xsl:template match="d:sidebar" priority="-1">
     <section>
       <xsl:apply-templates select="@*"/>
-      <title><!-- FIXME: Section without title, section structure preserved to keep xml:id --></title>
+      <title><!-/- FIXME: Section without title, section structure preserved to keep xml:id -/-></title>
       <xsl:apply-templates select="node()"/>
     </section>
     <xsl:comment>fuckwhat? tpl=3</xsl:comment>
@@ -184,7 +184,7 @@
 
   <xsl:template match="d:literal/d:phrase">
     <xsl:apply-templates/>
-  </xsl:template>
+  </xsl:template>-->
 
   <!-- Fight the weird habit of people putting underline/italic emphases into
   ulinks. -->
