@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-model href="conversion.rnc" type="application/relax-ng-compact-syntax"?>
+<config version="1.0">
+ <cleantmp>false</cleantmp>
+ <outputdir>conv</outputdir>
+
+ <files ditamap="overview.ditamap">
+  <replace source="shared/gettingstarted/intro-copyright.xml" target="copyright_socm.xml"/>
+ </files>
+ <files ditamap="msoperator.ditamap">
+  <replace source="shared/gettingstarted/intro-copyright.xml" target="copyright_socm.xml"/>
+  <remove source="shared/gettingstarted/intro-trademarks.xml"/>
+  <remove source="cmmoperator/install/c-cmmoprepare.xml"/>
+ </files>
+</config>

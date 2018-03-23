@@ -1,0 +1,71 @@
+# RELAX NG Schema for the conversion.xml file
+#
+# Author: 2017 Thomas Schraitle
+
+c.file.source.attrib =
+ ## the source filename
+ attribute source { text }
+
+c.file.target.attrib =
+ ## the target filename
+ attribute target { text }
+
+c.remove =
+ ## Remove this filename
+ element remove { c.file.source.attrib, empty }
+
+c.replace =
+ ## Replace this filename from source to target
+ element replace { c.file.source.attrib, c.file.target.attrib, empty }
+
+c.files.ditamap.attrib =
+  ## filename to DITAMap
+  attribute ditamap { xsd:anyURI }
+
+c.files.attributes =
+  c.files.ditamap.attrib
+
+c.files =
+ ## a list of files
+ element files {
+  c.files.attributes,
+  (c.replace* & c.remove*)+ 
+ }
+
+div {
+ c.styleroot = 
+   ## where the stylesheets are located
+   element styleroot { text }
+ c.outputdir =
+   ## where to save the converted files
+   element outputdir { "converted" | text }
+ c.entityfile =
+   ## our entity file
+   element entityfile { "entities.ent" | text }
+ c.cleanids =
+   ## User option: Clean up unused IDs?
+   element cleanids { xsd:boolean }
+ c.cleantmp =
+   ## Dev option: Clean temporary directory after transformation?
+   element cleantmp { xsd:boolean }
+}
+
+div {
+ c.config.version.attrib =
+  ## The version of this schema
+  attribute version { "1.0" }?
+
+ c.config.attributes = c.config.version.attrib
+
+ c.config =
+  ## root element of the configuration file
+  element config { c.config.attributes,
+  (c.styleroot? &
+   c.entityfile? &
+   c.outputdir? &
+   c.cleanids? &
+   c.cleantmp? )?,
+  c.files* }
+}
+
+start = c.config
